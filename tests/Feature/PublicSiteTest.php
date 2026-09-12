@@ -5,7 +5,9 @@ namespace Tests\Feature;
 use App\Models\Event;
 use App\Models\Faq;
 use App\Models\NewsPost;
+use Database\Seeders\FsrpEventPortalSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Storage;
 use PHPUnit\Framework\Attributes\TestWith;
 use Tests\TestCase;
 
@@ -56,6 +58,23 @@ class PublicSiteTest extends TestCase
         $this->get('/en/events/'.$event->slug)
             ->assertOk()
             ->assertSee($event->translate('title', 'en'));
+    }
+
+    public function test_caadp_event_displays_supplied_artwork_and_participant_information(): void
+    {
+        Storage::fake('local');
+        Storage::disk('local')->put(FsrpEventPortalSeeder::BRIEF_PATH, '%PDF-1.7 information note');
+        Storage::disk('local')->put(FsrpEventPortalSeeder::PROGRAMME_PATH, '%PDF-1.7 programme overview');
+        $this->seed(FsrpEventPortalSeeder::class);
+
+        $this->get('/en/events/'.FsrpEventPortalSeeder::EVENT_SLUG)
+            ->assertOk()
+            ->assertSee('Rainbow Towers Hotel and Conference Centre')
+            ->assertSee('Who will take part')
+            ->assertSee('Passport and visa')
+            ->assertSee('Official event contacts')
+            ->assertSee('/images/caadp/caadp-partnership-1.jpeg', false)
+            ->assertSee('/images/caadp/caadp-partnership-4.jpeg', false);
     }
 
     public function test_event_search_matches_arabic_translations(): void

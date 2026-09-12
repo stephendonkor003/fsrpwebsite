@@ -2,6 +2,9 @@
 @section('title', $event->translate('title'))
 @section('meta_description', $event->translate('excerpt'))
 @section('content')
+    @php
+        $isCaadpEvent = $event->slug === '22nd-caadp-partnership-platform';
+    @endphp
     <section class="detail-hero">
         <img src="{{ $event->image ?: asset('images/fsrp/field-implementation.jpeg') }}" alt="">
         <div class="page-hero-overlay"></div>
@@ -26,10 +29,16 @@
             <div class="event-share"><span>{{ __('ui.actions.share') }}</span><button type="button" data-copy-link data-success-label="{{ __('portal.copy_success') }}" data-prompt-label="{{ __('portal.copy_prompt') }}">{{ __('ui.common.copy_link') }}</button></div>
         </aside>
     </div></section>
+    @if($isCaadpEvent)
+        @include('site.events.partials.caadp-participant-information')
+    @endif
     @if($sessions->isNotEmpty())
         <section class="section agenda-section" id="programme"><div class="container"><div class="section-heading split-heading"><div><p class="eyebrow"><span></span>{{ __('ui.events.schedule') }}</p><h2>{{ __('portal.daily_programme') }}</h2></div><p>{{ __('portal.daily_summary') }}</p></div>
             <div class="programme-day-list">@foreach($sessions as $session)
-                <article class="programme-day"><div class="programme-day-date"><span>{{ $session->is_all_day ? __('portal.day', ['number' => $loop->iteration]) : $session->start_at?->format('H:i') }}</span><strong>{{ $session->start_at?->translatedFormat('d M') }}</strong><small>{{ $session->is_all_day ? $session->start_at?->translatedFormat('l') : $session->end_at?->format('H:i') }}</small></div><div><span class="resource-category">{{ $session->translate('track') ?: __('portal.daily_focus') }}</span><h3>{{ $session->translate('title') }}</h3><p>{{ $session->translate('summary') }}</p>@if($session->translate('speaker_name'))<p class="programme-speaker">{{ $session->translate('speaker_name') }} · {{ $session->translate('speaker_role') }}</p>@endif</div><span class="programme-day-icon">@include('site.partials.icon', ['name' => 'check'])</span></article>
+                <article class="programme-day">
+                    @if($isCaadpEvent)<img class="programme-day-image" src="{{ asset('images/caadp/caadp-partnership-'.(($loop->index % 4) + 1).'.jpeg') }}" alt="" loading="lazy">@endif
+                    <div class="programme-day-date"><span>{{ $session->is_all_day ? __('portal.day', ['number' => $loop->iteration]) : $session->start_at?->format('H:i') }}</span><strong>{{ $session->start_at?->translatedFormat('d M') }}</strong><small>{{ $session->is_all_day ? $session->start_at?->translatedFormat('l') : $session->end_at?->format('H:i') }}</small></div><div><span class="resource-category">{{ $session->translate('track') ?: __('portal.daily_focus') }}</span><h3>{{ $session->translate('title') }}</h3><p>{{ $session->translate('summary') }}</p>@if($session->translate('speaker_name'))<p class="programme-speaker">{{ $session->translate('speaker_name') }} · {{ $session->translate('speaker_role') }}</p>@endif</div><span class="programme-day-icon">@include('site.partials.icon', ['name' => 'check'])</span>
+                </article>
             @endforeach</div><p class="programme-note">@include('site.partials.icon', ['name' => 'clock']){{ __('portal.programme_note') }}</p>
         </div></section>
     @endif

@@ -417,6 +417,55 @@
 .map-country-groups li { font-size: .76rem; color: var(--ink-soft); margin-bottom: 7px; line-height: 1.5; }
 .coverage-participation { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 30px; margin-top: 30px; }
 .coverage-participation .participation-step { align-items: flex-start; border: 0; }
+
+/* CAADP event artwork and participant information. */
+.day-card-visual { position: relative; min-height: 360px; overflow: hidden; border: 0; color: white; isolation: isolate; }
+.day-card-background { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; z-index: -2; transition: transform .45s ease; }
+.day-card-visual::after { content: ''; position: absolute; inset: 0; z-index: -1; background: linear-gradient(180deg, #001f3882 0%, #001f3be8 58%, #00192ff5 100%); }
+.day-card-visual:hover .day-card-background { transform: scale(1.035); }
+.day-card-content { display: flex; flex: 1; flex-direction: column; }
+.day-card-visual .day-card-top > span, .day-card-visual > .day-card-content > a { color: var(--gold); }
+.day-card-visual .day-card-top time, .day-card-visual > .day-card-content > p { color: #ffffffc7; }
+.programme-day:has(.programme-day-image) { grid-template-columns: 112px 128px minmax(0, 1fr) 28px; }
+.programme-day-image { width: 112px; aspect-ratio: 1; border-radius: 7px; object-fit: cover; box-shadow: 0 8px 24px #153a2930; }
+.caadp-information { background: #f3f6f1; scroll-margin-top: 110px; }
+.caadp-information-heading > p { max-width: 560px; color: var(--ink-soft); line-height: 1.8; }
+.caadp-gallery { display: grid; grid-template-columns: 2fr repeat(3, 1fr); gap: 12px; margin: 34px 0; }
+.caadp-gallery figure { min-width: 0; height: 210px; margin: 0; overflow: hidden; border-radius: 10px; background: var(--navy-deep); }
+.caadp-gallery .caadp-gallery-feature { height: 440px; grid-row: span 2; }
+.caadp-gallery figure:nth-child(2) { grid-column: span 2; }
+.caadp-gallery img { width: 100%; height: 100%; object-fit: cover; }
+.caadp-gallery figure:nth-child(3) img, .caadp-gallery figure:nth-child(4) img { object-fit: contain; padding: 14px; }
+.caadp-audience { display: grid; grid-template-columns: minmax(260px, .8fr) minmax(0, 1.5fr); gap: 45px; align-items: center; margin-bottom: 30px; padding: 30px 34px; border-radius: 10px; background: var(--green-deep); color: white; }
+.caadp-audience h3 { margin: 8px 0 0; color: white; font-size: 1.65rem; }
+.caadp-audience p { margin: 0; color: #ffffffc9; line-height: 1.8; }
+.caadp-information-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; }
+.caadp-info-card { display: grid; grid-template-columns: 42px minmax(0, 1fr); gap: 18px; padding: 28px; border: 1px solid #dce5d9; border-radius: 10px; background: white; box-shadow: 0 10px 30px #173a2808; }
+.caadp-info-card-wide { grid-column: 1 / -1; }
+.caadp-info-number { color: var(--gold-dark); font-size: .72rem; font-weight: 800; letter-spacing: .08em; }
+.caadp-info-card h3 { margin: 0 0 14px; color: var(--green-deep); font-size: 1.2rem; }
+.caadp-info-card p { margin: 0 0 12px; color: var(--ink-soft); font-size: .84rem; line-height: 1.8; }
+.caadp-info-card a { color: var(--green); text-decoration: underline; text-underline-offset: 3px; overflow-wrap: anywhere; }
+.hotel-list { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; margin: 20px 0 12px; }
+.hotel-list > div { display: grid; grid-template-columns: 1fr auto; gap: 5px 12px; padding: 15px; border-radius: 7px; background: #f4f7ef; }
+.hotel-list strong, .hotel-list span { font-size: .76rem; }
+.hotel-list span { color: var(--gold-dark); font-weight: 800; }
+.hotel-list small { grid-column: 1 / -1; color: var(--ink-soft); font-size: .67rem; line-height: 1.55; overflow-wrap: anywhere; }
+.source-note { display: block; color: var(--ink-soft); font-size: .67rem; }
+.caadp-quick-facts { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 14px; }
+.caadp-quick-facts > div { padding: 18px; border-inline-start: 3px solid var(--gold); background: #f5f8f2; }
+.caadp-quick-facts strong, .caadp-quick-facts span { display: block; }
+.caadp-quick-facts strong { color: var(--green-deep); font-size: 1.35rem; }
+.caadp-quick-facts span { margin-top: 5px; color: var(--ink-soft); font-size: .72rem; line-height: 1.5; }
+.caadp-contacts { display: grid; grid-template-columns: minmax(240px, .8fr) minmax(0, 1.6fr); gap: 45px; margin-top: 30px; padding: 38px; border-radius: 12px; background: var(--navy-deep); color: white; }
+.caadp-contacts h2, .caadp-contacts h3 { color: white; }
+.caadp-contacts h2 { margin: 12px 0; font-size: 2rem; }
+.caadp-contacts > div:first-child > p:last-child { color: #ffffffa8; }
+.caadp-contact-groups { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 24px; }
+.caadp-contact-groups h3 { margin: 0 0 14px; font-size: .8rem; color: var(--gold); }
+.caadp-contact-groups a { display: block; margin-bottom: 10px; color: #ffffffe0; font-size: .76rem; }
+.caadp-contact-groups p { color: #ffffff8f; font-size: .68rem; line-height: 1.7; }
+@media (prefers-reduced-motion: reduce) { .day-card-background { transition: none; } }
 @media (prefers-reduced-motion: reduce) { .africa-country { transition: none; } }
 @media (max-width: 1050px) {
     .africa-map-panel { padding: 24px; }
@@ -424,6 +473,8 @@
     .africa-map-figure { padding: 16px; }
     .map-country-groups { grid-template-columns: repeat(3, minmax(0, 1fr)); }
     .coverage-participation { gap: 18px; }
+    .hotel-list { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .caadp-contacts { grid-template-columns: 1fr; gap: 25px; }
 }
 @media (max-width: 760px) {
     .coverage-heading { gap: 22px; align-items: flex-start; }
@@ -435,6 +486,16 @@
     .coverage-participation { grid-template-columns: 1fr; gap: 0; }
     .coverage-participation .participation-step { border-bottom: 1px solid var(--line); }
     .map-country-groups { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .programme-day:has(.programme-day-image) { grid-template-columns: 90px 100px minmax(0, 1fr); }
+    .programme-day-image { width: 90px; }
+    .caadp-gallery { grid-template-columns: repeat(2, 1fr); }
+    .caadp-gallery .caadp-gallery-feature { height: 360px; grid-column: 1 / -1; grid-row: auto; }
+    .caadp-gallery figure:nth-child(2) { grid-column: auto; }
+    .caadp-gallery figure { height: 180px; }
+    .caadp-audience { grid-template-columns: 1fr; gap: 16px; }
+    .caadp-information-grid { grid-template-columns: 1fr; }
+    .caadp-info-card-wide { grid-column: auto; }
+    .caadp-contact-groups { grid-template-columns: 1fr 1fr; }
 }
 @media (max-width: 520px) {
     .coverage-heading { flex-direction: column; }
@@ -445,4 +506,13 @@
     .africa-map-figure { padding: 16px 8px; }
     .africa-map-panel { padding: 24px 20px; }
     .map-country-groups { gap: 18px; padding-inline: 18px; }
+    .programme-day:has(.programme-day-image) { display: grid; grid-template-columns: 74px minmax(0, 1fr); }
+    .programme-day-image { width: 74px; grid-row: span 2; }
+    .programme-day:has(.programme-day-image) .programme-day-date { margin: 0; padding: 0 0 12px; }
+    .caadp-gallery { gap: 8px; }
+    .caadp-gallery .caadp-gallery-feature { height: 300px; }
+    .caadp-gallery figure { height: 145px; }
+    .caadp-audience, .caadp-info-card, .caadp-contacts { padding: 23px; }
+    .hotel-list, .caadp-quick-facts, .caadp-contact-groups { grid-template-columns: 1fr; }
+    .caadp-info-card { grid-template-columns: 1fr; gap: 9px; }
 }

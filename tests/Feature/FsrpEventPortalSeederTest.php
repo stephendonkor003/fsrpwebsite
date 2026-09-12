@@ -37,14 +37,16 @@ class FsrpEventPortalSeederTest extends TestCase
         $this->assertSame('2026-09-15', $event->start_at->toDateString());
         $this->assertSame('2026-09-18', $event->end_at->toDateString());
         $this->assertNull($event->registration_url);
-        $this->assertSame('/images/fsrp/field-implementation.jpeg', $event->image);
+        $this->assertSame('/images/caadp/caadp-partnership-4.jpeg', $event->image);
+        $this->assertSame('Rainbow Towers Hotel and Conference Centre, Harare, Zimbabwe', $event->translate('venue', 'en'));
+        $this->assertSame('Partner event | AUC and AUDA-NEPAD | From the CAADP Strategy and Action Plan 2026-2035 to practical country and regional delivery.', $event->translate('excerpt', 'en'));
         $this->assertStringContainsString('AUC', $event->translate('body', 'en'));
         $this->assertStringContainsString('PARTNER EVENT', $event->translate('body', 'en'));
         $this->assertSame(['2026-09-15', '2026-09-16', '2026-09-17', '2026-09-18'],
             $event->sessions()->orderBy('start_at')->get()->map(fn (Session $session): string => $session->start_at->toDateString())->all());
         $this->assertSame(4, $event->sessions()->where('is_all_day', true)->whereNull('end_at')->count());
-        $this->assertSame(7, Slide::where('is_active', true)->count());
-        $this->assertSame(3, Slide::where('is_active', true)->whereNotNull('video_url')->count());
+        $this->assertSame(4, Slide::where('is_active', true)->count());
+        $this->assertSame(1, Slide::where('is_active', true)->whereNotNull('video_url')->count());
         $this->assertSame(4, Program::where('is_published', true)->count());
         $this->assertSame(6, Faq::where('is_published', true)->count());
         $this->assertSame('FSRP Events', Setting::where('key', 'site_name')->firstOrFail()->value['en']);
@@ -55,7 +57,7 @@ class FsrpEventPortalSeederTest extends TestCase
         $this->assertDatabaseHas('events', ['slug' => 'continental-digital-trade-lab', 'is_published' => false]);
         $this->assertDatabaseCount('events', 6);
         $this->assertDatabaseCount('sessions', 12);
-        $this->assertDatabaseCount('slides', 10);
+        $this->assertDatabaseCount('slides', 7);
         $this->assertDatabaseCount('programs', 8);
         $this->assertDatabaseCount('faqs', 14);
         $this->assertDatabaseCount('news_posts', 5);
@@ -65,13 +67,14 @@ class FsrpEventPortalSeederTest extends TestCase
         $this->assertStringContainsString('/ar/events/'.FsrpEventPortalSeeder::EVENT_SLUG, $partnerUpdate->translate('body', 'ar'));
         $this->assertDatabaseCount('event_resources', 2);
         $this->assertSame(['programme', 'brief'], $event->resources()->orderBy('sort_order')->pluck('category')->all());
+        $this->assertSame('application/pdf', $event->resources()->where('category', 'brief')->firstOrFail()->mime_type);
         $this->assertSame(['en', 'fr', 'ar', 'pt', 'es', 'sw'], array_keys($event->title));
 
         $this->seed(FsrpEventPortalSeeder::class);
 
         $this->assertDatabaseCount('events', 6);
         $this->assertDatabaseCount('sessions', 12);
-        $this->assertDatabaseCount('slides', 10);
+        $this->assertDatabaseCount('slides', 7);
         $this->assertDatabaseCount('programs', 8);
         $this->assertDatabaseCount('faqs', 14);
         $this->assertDatabaseCount('news_posts', 5);

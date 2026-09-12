@@ -22,7 +22,7 @@ class FsrpEventPortalSeeder extends Seeder
 {
     public const EVENT_SLUG = '22nd-caadp-partnership-platform';
 
-    public const BRIEF_PATH = 'event-resources/22nd-caadp-pp-key-information.docx';
+    public const BRIEF_PATH = 'event-resources/22nd-caadp-pp-information-note.pdf';
 
     public const PROGRAMME_PATH = 'event-resources/22nd-caadp-pp-programme-overview.pdf';
 
@@ -286,6 +286,15 @@ class FsrpEventPortalSeeder extends Seeder
                 'is_published' => true,
             ]);
         }
+
+        $this->updateEnglishFaqAnswer(
+            'When and where is the CAADP partner event?',
+            '15â€“18 September 2026 at Rainbow Towers Hotel and Conference Centre, Pennefather Avenue, Samora Machel Avenue, Harare, Zimbabwe. Daily session times remain subject to confirmation by the conveners.',
+        );
+        $this->updateEnglishFaqAnswer(
+            'How do I confirm participation and travel arrangements?',
+            'Follow the convenersâ€™ participation instructions. AUC-sponsored participants are booked at Rainbow Towers and receive arrival and departure airport transfers; self-sponsored participants arrange their own accommodation and local transport. Visa, health, DSA and contact details are in the official information note.',
+        );
     }
 
     private function seedHomeSections(): void
@@ -312,26 +321,34 @@ class FsrpEventPortalSeeder extends Seeder
 
     private function seedPartnerEvent(): Event
     {
-        return Event::query()->updateOrCreate(['slug' => self::EVENT_SLUG], [
+        $event = Event::query()->updateOrCreate(['slug' => self::EVENT_SLUG], [
             'title' => $this->t('22nd CAADP Partnership Platform', '22e Plateforme de partenariat du PDDAA', 'Ù…Ù†ØµØ© Ø´Ø±Ø§ÙƒØ© CAADP Ø§Ù„Ø«Ø§Ù†ÙŠØ© ÙˆØ§Ù„Ø¹Ø´Ø±ÙˆÙ†', '22.Âª Plataforma de Parceria CAADP', '22.Âª Plataforma de AsociaciÃ³n CAADP', 'Jukwaa la 22 la Ushirikiano wa CAADP'),
             'excerpt' => $this->t('Partner event Â· AUC & AUDA-NEPAD Â· From the CAADP Strategy and Action Plan 2026â€“2035 to practical country and regional delivery.', 'Ã‰vÃ©nement partenaire Â· CUA et AUDA-NEPAD Â· De la stratÃ©gie et du plan dâ€™action du PDDAA 2026â€“2035 Ã  une mise en Å“uvre concrÃ¨te aux niveaux national et rÃ©gional.', 'ÙØ¹Ø§Ù„ÙŠØ© Ø´Ø±ÙŠÙƒØ© Â· Ù…ÙÙˆØ¶ÙŠØ© Ø§Ù„Ø§ØªØ­Ø§Ø¯ Ø§Ù„Ø¥ÙØ±ÙŠÙ‚ÙŠ ÙˆAUDA-NEPAD Â· Ù…Ù† Ø§Ø³ØªØ±Ø§ØªÙŠØ¬ÙŠØ© ÙˆØ®Ø·Ø© Ø¹Ù…Ù„ CAADP Ù„Ù„ÙØªØ±Ø© 2026â€“2035 Ø¥Ù„Ù‰ Ø§Ù„ØªÙ†ÙÙŠØ° Ø§Ù„Ø¹Ù…Ù„ÙŠ Ø§Ù„Ù‚Ø·Ø±ÙŠ ÙˆØ§Ù„Ø¥Ù‚Ù„ÙŠÙ…ÙŠ.', 'Evento parceiro Â· CUA e AUDA-NEPAD Â· Da EstratÃ©gia e Plano de AÃ§Ã£o CAADP 2026â€“2035 Ã  implementaÃ§Ã£o prÃ¡tica nacional e regional.', 'Evento de socios Â· CUA y AUDA-NEPAD Â· De la Estrategia y Plan de AcciÃ³n CAADP 2026â€“2035 a la ejecuciÃ³n prÃ¡ctica nacional y regional.', 'Tukio la washirika Â· AUC na AUDA-NEPAD Â· Kutoka Mkakati na Mpango wa Utekelezaji wa CAADP 2026â€“2035 hadi utekelezaji wa vitendo wa nchi na kanda.'),
             'body' => $this->t(
-                'PARTNER EVENT. Convened by the African Union Commission (AUC) and AUDA-NEPAD with Member States, regional economic communities, technical institutions and development partners. The four-day Platform links political direction, country and regional readiness, implementation delivery labs, investment alignment and mutual accountability. Interpretation is listed in Arabic, English, French and Portuguese. The supplied brief confirms Harare, Zimbabwe, and 15â€“18 September 2026; detailed session times, the specific venue and participation arrangements must be confirmed by the conveners. Download the original key-information brief and the programme overview for preparation inputs and the four-day delivery journey.',
+                'PARTNER EVENT. Convened by the African Union Commission (AUC) and AUDA-NEPAD with Member States, regional economic communities, technical institutions and development partners. The four-day Platform links political direction, country and regional readiness, implementation delivery labs, investment alignment and mutual accountability. The meeting takes place at Rainbow Towers Hotel and Conference Centre in Harare from 15â€“18 September 2026. The official information note covers accommodation, airport transfers, immigration, health, DSA, weather, currency, electricity and organizer contacts for AUC-sponsored and self-sponsored participants. Detailed session times remain subject to confirmation by the conveners.',
                 'Ã‰VÃ‰NEMENT PARTENAIRE. OrganisÃ© par la Commission de lâ€™Union africaine (CUA) et lâ€™AUDA-NEPAD avec les Ã‰tats membres, les communautÃ©s Ã©conomiques rÃ©gionales, les institutions techniques et les partenaires de dÃ©veloppement. Les quatre journÃ©es relient orientation politique, prÃ©paration nationale et rÃ©gionale, laboratoires de mise en Å“uvre, investissements et redevabilitÃ© mutuelle. Lâ€™interprÃ©tation est annoncÃ©e en arabe, anglais, franÃ§ais et portugais. La note confirme Harare, Zimbabwe, du 15 au 18 septembre 2026 ; les horaires, le lieu prÃ©cis et les modalitÃ©s de participation doivent Ãªtre confirmÃ©s par les organisateurs. TÃ©lÃ©chargez la note originale et lâ€™aperÃ§u du programme.',
                 'ÙØ¹Ø§Ù„ÙŠØ© Ø´Ø±ÙŠÙƒØ©. ØªÙ†Ø¸Ù…Ù‡Ø§ Ù…ÙÙˆØ¶ÙŠØ© Ø§Ù„Ø§ØªØ­Ø§Ø¯ Ø§Ù„Ø¥ÙØ±ÙŠÙ‚ÙŠ ÙˆÙˆÙƒØ§Ù„Ø© Ø§Ù„Ø§ØªØ­Ø§Ø¯ Ø§Ù„Ø¥ÙØ±ÙŠÙ‚ÙŠ Ù„Ù„ØªÙ†Ù…ÙŠØ©-Ù†ÙŠØ¨Ø§Ø¯ Ù…Ø¹ Ø§Ù„Ø¯ÙˆÙ„ Ø§Ù„Ø£Ø¹Ø¶Ø§Ø¡ ÙˆØ§Ù„Ù…Ø¬Ù…ÙˆØ¹Ø§Øª Ø§Ù„Ø§Ù‚ØªØµØ§Ø¯ÙŠØ© Ø§Ù„Ø¥Ù‚Ù„ÙŠÙ…ÙŠØ© ÙˆØ§Ù„Ù…Ø¤Ø³Ø³Ø§Øª Ø§Ù„ÙÙ†ÙŠØ© ÙˆØ´Ø±ÙƒØ§Ø¡ Ø§Ù„ØªÙ†Ù…ÙŠØ©. ØªØ±Ø¨Ø· Ø§Ù„Ø£ÙŠØ§Ù… Ø§Ù„Ø£Ø±Ø¨Ø¹Ø© Ø§Ù„ØªÙˆØ¬ÙŠÙ‡ Ø§Ù„Ø³ÙŠØ§Ø³ÙŠ ÙˆØ§Ù„Ø¬Ø§Ù‡Ø²ÙŠØ© Ø§Ù„Ù‚Ø·Ø±ÙŠØ© ÙˆØ§Ù„Ø¥Ù‚Ù„ÙŠÙ…ÙŠØ© ÙˆÙ…Ø®ØªØ¨Ø±Ø§Øª Ø§Ù„ØªÙ†ÙÙŠØ° ÙˆÙ…ÙˆØ§Ø¡Ù…Ø© Ø§Ù„Ø§Ø³ØªØ«Ù…Ø§Ø± ÙˆØ§Ù„Ù…Ø³Ø§Ø¡Ù„Ø© Ø§Ù„Ù…ØªØ¨Ø§Ø¯Ù„Ø©. Ø§Ù„ØªØ±Ø¬Ù…Ø© Ø§Ù„ÙÙˆØ±ÙŠØ© Ù…Ø¯Ø±Ø¬Ø© Ø¨Ø§Ù„Ø¹Ø±Ø¨ÙŠØ© ÙˆØ§Ù„Ø¥Ù†Ø¬Ù„ÙŠØ²ÙŠØ© ÙˆØ§Ù„ÙØ±Ù†Ø³ÙŠØ© ÙˆØ§Ù„Ø¨Ø±ØªØºØ§Ù„ÙŠØ©. ÙŠØ¤ÙƒØ¯ Ø§Ù„Ù…ÙˆØ¬Ø² Ù‡Ø±Ø§Ø±ÙŠØŒ Ø²ÙŠÙ…Ø¨Ø§Ø¨ÙˆÙŠØŒ Ù…Ù† 15 Ø¥Ù„Ù‰ 18 Ø³Ø¨ØªÙ…Ø¨Ø± 2026Ø› ÙˆÙŠØ¬Ø¨ Ø£Ù† ÙŠØ¤ÙƒØ¯ Ø§Ù„Ù…Ù†Ø¸Ù…ÙˆÙ† Ù…ÙˆØ§Ø¹ÙŠØ¯ Ø§Ù„Ø¬Ù„Ø³Ø§Øª ÙˆØ§Ù„Ù…ÙƒØ§Ù† Ø§Ù„Ø¯Ù‚ÙŠÙ‚ ÙˆØªØ±ØªÙŠØ¨Ø§Øª Ø§Ù„Ù…Ø´Ø§Ø±ÙƒØ©. Ù†Ø²Ù‘Ù„ Ø§Ù„Ù…ÙˆØ¬Ø² Ø§Ù„Ø£ØµÙ„ÙŠ ÙˆÙ†Ø¸Ø±Ø© Ø¹Ø§Ù…Ø© Ø¹Ù„Ù‰ Ø§Ù„Ø¨Ø±Ù†Ø§Ù…Ø¬.',
                 'EVENTO PARCEIRO. Organizado pela ComissÃ£o da UniÃ£o Africana e pela AUDA-NEPAD com Estados-Membros, comunidades econÃ³micas regionais, instituiÃ§Ãµes tÃ©cnicas e parceiros de desenvolvimento. Os quatro dias ligam orientaÃ§Ã£o polÃ­tica, preparaÃ§Ã£o nacional e regional, laboratÃ³rios de implementaÃ§Ã£o, investimento e responsabilizaÃ§Ã£o mÃºtua. EstÃ¡ indicada interpretaÃ§Ã£o em Ã¡rabe, inglÃªs, francÃªs e portuguÃªs. A nota confirma Harare, ZimbabuÃ©, de 15 a 18 de setembro de 2026; os organizadores devem confirmar horÃ¡rios, local especÃ­fico e participaÃ§Ã£o. Descarregue a nota original e a visÃ£o geral do programa.',
                 'EVENTO DE SOCIOS. Convocado por la ComisiÃ³n de la UniÃ³n Africana y AUDA-NEPAD con Estados miembros, comunidades econÃ³micas regionales, instituciones tÃ©cnicas y socios de desarrollo. Los cuatro dÃ­as conectan orientaciÃ³n polÃ­tica, preparaciÃ³n nacional y regional, laboratorios de ejecuciÃ³n, inversiÃ³n y rendiciÃ³n de cuentas mutua. Se indica interpretaciÃ³n en Ã¡rabe, inglÃ©s, francÃ©s y portuguÃ©s. La nota confirma Harare, Zimbabue, del 15 al 18 de septiembre de 2026; los organizadores deben confirmar horarios, lugar especÃ­fico y participaciÃ³n. Descargue la nota original y el resumen del programa.',
                 'TUKIO LA WASHIRIKA. Linaandaliwa na Tume ya Umoja wa Afrika na AUDA-NEPAD pamoja na nchi wanachama, jumuiya za kiuchumi za kikanda, taasisi za kiufundi na washirika wa maendeleo. Siku nne zinaunganisha mwelekeo wa kisiasa, utayari wa nchi na kanda, maabara za utekelezaji, uwekezaji na uwajibikaji wa pamoja. Ukalimani umeorodheshwa kwa Kiarabu, Kiingereza, Kifaransa na Kireno. Muhtasari unathibitisha Harare, Zimbabwe, tarehe 15â€“18 Septemba 2026; waandaaji wanapaswa kuthibitisha saa, ukumbi maalumu na ushiriki. Pakua waraka asili na muhtasari wa programu.',
             ),
-            'venue' => $this->t('Harare, Zimbabwe', 'Harare, Zimbabwe', 'Ù‡Ø±Ø§Ø±ÙŠØŒ Ø²ÙŠÙ…Ø¨Ø§Ø¨ÙˆÙŠ', 'Harare, ZimbabuÃ©', 'Harare, Zimbabue', 'Harare, Zimbabwe'),
+            'venue' => $this->t('Rainbow Towers Hotel and Conference Centre, Harare, Zimbabwe'),
             'start_at' => '2026-09-15 00:00:00',
             'end_at' => '2026-09-18 23:59:59',
             'mode' => 'in-person',
             'registration_url' => null,
-            'image' => '/images/fsrp/field-implementation.jpeg',
+            'image' => '/images/caadp/caadp-partnership-4.jpeg',
             'is_featured' => true,
             'is_published' => true,
         ]);
+
+        $excerpt = $event->excerpt;
+        $excerpt['en'] = 'Partner event | AUC and AUDA-NEPAD | From the CAADP Strategy and Action Plan 2026-2035 to practical country and regional delivery.';
+        $body = $event->body;
+        $body['en'] = 'PARTNER EVENT. Convened by the African Union Commission (AUC) and AUDA-NEPAD with Member States, regional economic communities, technical institutions and development partners. The four-day Platform links political direction, country and regional readiness, implementation delivery labs, investment alignment and mutual accountability. The meeting takes place at Rainbow Towers Hotel and Conference Centre in Harare from 15-18 September 2026. The official information note covers accommodation, airport transfers, immigration, health, DSA, weather, currency, electricity and organizer contacts for AUC-sponsored and self-sponsored participants. Detailed session times remain subject to confirmation by the conveners.';
+        $event->update(['excerpt' => $excerpt, 'body' => $body]);
+
+        return $event;
     }
 
     private function seedDailyOverview(Event $event): void
@@ -426,7 +443,7 @@ class FsrpEventPortalSeeder extends Seeder
                 'file_path' => self::BRIEF_PATH,
                 'title' => $this->t('CAADP key-information brief', 'Note dâ€™information essentielle du PDDAA', 'Ù…ÙˆØ¬Ø² Ø§Ù„Ù…Ø¹Ù„ÙˆÙ…Ø§Øª Ø§Ù„Ø£Ø³Ø§Ø³ÙŠØ© Ù„ÙØ¹Ø§Ù„ÙŠØ© CAADP', 'Nota de informaÃ§Ã£o essencial do CAADP', 'Nota de informaciÃ³n clave de CAADP', 'Muhtasari wa taarifa muhimu za CAADP'),
                 'description' => $this->t(
-                    'Original supplied English Word document for the 22nd CAADP Partnership Platform. Conveners: AUC and AUDA-NEPAD.',
+                    'Official English participant information note dated 9 September 2026, covering the venue, accommodation, transport, visas, health, DSA, weather, currency, electricity and event contacts.',
                     'Document Word original fourni en anglais pour la 22e Plateforme de partenariat du PDDAA. Organisateurs : CUA et AUDA-NEPAD.',
                     'ÙˆØ«ÙŠÙ‚Ø© Word Ø§Ù„Ø£ØµÙ„ÙŠØ© Ø§Ù„Ù…Ù‚Ø¯Ù…Ø© Ø¨Ø§Ù„Ø¥Ù†Ø¬Ù„ÙŠØ²ÙŠØ© Ù„Ù…Ù†ØµØ© Ø´Ø±Ø§ÙƒØ© CAADP Ø§Ù„Ø«Ø§Ù†ÙŠØ© ÙˆØ§Ù„Ø¹Ø´Ø±ÙŠÙ†. Ø§Ù„Ù…Ù†Ø¸Ù…Ø§Ù†: Ù…ÙÙˆØ¶ÙŠØ© Ø§Ù„Ø§ØªØ­Ø§Ø¯ Ø§Ù„Ø¥ÙØ±ÙŠÙ‚ÙŠ ÙˆÙˆÙƒØ§Ù„Ø© Ø§Ù„Ø§ØªØ­Ø§Ø¯ Ø§Ù„Ø¥ÙØ±ÙŠÙ‚ÙŠ Ù„Ù„ØªÙ†Ù…ÙŠØ©-Ù†ÙŠØ¨Ø§Ø¯.',
                     'Documento Word original fornecido em inglÃªs para a 22.Âª Plataforma de Parceria CAADP. Organizadores: CUA e AUDA-NEPAD.',
@@ -434,13 +451,13 @@ class FsrpEventPortalSeeder extends Seeder
                     'Waraka asili wa Word uliotolewa kwa Kiingereza kwa Jukwaa la 22 la Ushirikiano wa CAADP. Waandaaji: Tume ya Umoja wa Afrika na AUDA-NEPAD.',
                 ),
                 'category' => 'brief',
-                'original_filename' => '22nd_CAADP_PP_BRIEF_Key_Information.docx',
-                'mime_type' => 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+                'original_filename' => 'Information_Note_22nd_CAADP_PP_Zimbabwe_2026.pdf',
+                'mime_type' => 'application/pdf',
             ],
         ];
 
         foreach ($resources as $index => $resource) {
-            EventResource::query()->updateOrCreate(['event_id' => $event->id, 'file_path' => $resource['file_path']], array_merge($resource, [
+            EventResource::query()->updateOrCreate(['event_id' => $event->id, 'category' => $resource['category']], array_merge($resource, [
                 'language' => 'en',
                 'file_size' => Storage::disk('local')->size($resource['file_path']),
                 'is_published' => true,
@@ -489,6 +506,19 @@ class FsrpEventPortalSeeder extends Seeder
     {
         $record = $modelClass::query()->where($field.'->en', $attributes[$field]['en'])->first() ?? new $modelClass;
         $record->fill($attributes)->save();
+    }
+
+    private function updateEnglishFaqAnswer(string $question, string $answer): void
+    {
+        $faq = Faq::query()->where('question->en', $question)->first();
+
+        if ($faq === null) {
+            return;
+        }
+
+        $answers = $faq->answer;
+        $answers['en'] = $answer;
+        $faq->update(['answer' => $answers]);
     }
 
     /**

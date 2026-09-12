@@ -1,13 +1,14 @@
 @extends('layouts.site')
 @section('title', __('portal.programme'))
 @section('content')
-    @include('site.partials.page-hero', ['title' => __('portal.programme_title'), 'eyebrow' => __('portal.programme'), 'summary' => __('portal.programme_summary'), 'heroImage' => asset('images/fsrp/field-implementation.jpeg')])
+    @include('site.partials.page-hero', ['title' => __('portal.programme_title'), 'eyebrow' => __('portal.programme'), 'summary' => __('portal.programme_summary'), 'heroImage' => asset('images/caadp/caadp-partnership-1.jpeg')])
     <section class="section programme-events"><div class="container">
         @forelse($programmeEvents as $programmeEvent)
             <div class="programme-event-heading"><div><p class="eyebrow"><span></span>{{ $programmeEvent->start_at?->translatedFormat('d M') }} – {{ $programmeEvent->end_at?->translatedFormat('d M Y') }} · {{ $programmeEvent->translate('venue') }}</p><h2>{{ $programmeEvent->translate('title') }}</h2><p>{{ $programmeEvent->translate('excerpt') }}</p></div>@if($programmeFile = $programmeEvent->resources->firstWhere('category', 'programme'))<a class="button button-dark" href="{{ route('resources.download', [$locale, $programmeFile->id]) }}" download="{{ $programmeFile->original_filename }}">@include('site.partials.icon', ['name' => 'download']){{ __('portal.download_programme') }}</a>@endif</div>
             <div class="programme-day-list">
                 @foreach($programmeEvent->sessions as $session)
                     <article class="programme-day">
+                        @if($programmeEvent->slug === '22nd-caadp-partnership-platform')<img class="programme-day-image" src="{{ asset('images/caadp/caadp-partnership-'.(($loop->index % 4) + 1).'.jpeg') }}" alt="" loading="lazy">@endif
                         <div class="programme-day-date"><span>{{ $session->is_all_day ? __('portal.day', ['number' => $loop->iteration]) : $session->start_at?->format('H:i') }}</span><strong>{{ $session->start_at?->translatedFormat('d M') }}</strong><small>{{ $session->start_at?->translatedFormat('l') }}</small></div>
                         <div><span class="resource-category">{{ $session->translate('track') ?: __('portal.daily_focus') }}</span><h3>{{ $session->translate('title') }}</h3><p>{{ $session->translate('summary') }}</p>@if($session->translate('speaker_name'))<div class="programme-speaker">@include('site.partials.icon', ['name' => 'people']){{ $session->translate('speaker_name') }} @if($session->translate('speaker_role'))· {{ $session->translate('speaker_role') }}@endif</div>@endif</div>
                         <span class="programme-day-icon">@include('site.partials.icon', ['name' => 'check'])</span>

@@ -61,7 +61,9 @@
                         <p class="countdown-finished" data-countdown-finished hidden>{{ __('portal.event_has_started') }}</p>
                     </div>
                     <a class="next-event-arrow" href="{{ route('events.show', [$locale, $featuredEvent->slug]) }}" aria-label="{{ __('portal.event_details') }}">@include('site.partials.icon', ['name' => 'arrow'])</a>
-                    <a class="next-event-doc" href="{{ asset('downloads/caadp/22nd-caadp-partnership-platform-information-note.pdf') }}" target="_blank" rel="noopener noreferrer">{{ __('portal.information_note') }} @include('site.partials.icon', ['name' => 'download'])</a>
+                    @if($informationNote = $featuredEvent->resources->firstWhere('category', 'brief'))
+                        <a class="next-event-doc" href="{{ route('resources.download', [$locale, $informationNote->id]) }}" download="{{ $informationNote->original_filename }}">{{ __('portal.information_note') }} @include('site.partials.icon', ['name' => 'download'])</a>
+                    @endif
                 </div>
             </section>
         @endif
