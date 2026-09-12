@@ -192,6 +192,12 @@
 .event-share { border-top: 1px solid var(--line); margin-top: 25px; padding-top: 20px; display: flex; justify-content: space-between; gap: 10px; font-size: .75rem; }
 .event-share button { background: none; border: 0; color: var(--green); text-decoration: underline; cursor: pointer; padding: 0; }
 .agenda-section { background: #f5f8f1; }
+.programme-update-band { padding: 28px 0 0; background: #f7f8f4; }
+.programme-update-notice { display: grid; grid-template-columns: 54px minmax(0, 1fr); gap: 22px; align-items: center; padding: 25px 28px; color: white; background: linear-gradient(125deg, #8f171d, #c72b32); border: 1px solid #761116; border-radius: 9px; box-shadow: 0 12px 30px rgba(113, 17, 22, .18); }
+.programme-update-icon { display: grid; place-items: center; width: 54px; height: 54px; color: #991b20; background: white; border-radius: 50%; font-family: Georgia, serif; font-size: 2rem; font-weight: 800; line-height: 1; }
+.programme-update-label { margin: 0 0 4px; color: #ffd9d9; font-size: .68rem; font-weight: 750; letter-spacing: .1em; text-transform: uppercase; }
+.programme-update-notice h2 { margin: 0 0 5px; color: white; font-size: 1.3rem; line-height: 1.25; }
+.programme-update-notice > div > p:last-child { max-width: 900px; margin: 0; color: #fff1f1; font-size: .88rem; line-height: 1.65; }
 .programme-event-heading { display: flex; align-items: center; justify-content: space-between; gap: 45px; margin-bottom: 35px; }
 .programme-event-heading > div { max-width: 830px; }
 .programme-event-heading h2 { font-size: 2.3rem; }
@@ -337,6 +343,10 @@
     .about-fsrp-layout > img { height: 350px; }
 }
 @media (max-width: 520px) {
+    .programme-update-band { padding-top: 18px; }
+    .programme-update-notice { grid-template-columns: 42px minmax(0, 1fr); gap: 15px; padding: 20px; }
+    .programme-update-icon { width: 42px; height: 42px; font-size: 1.55rem; }
+    .programme-update-notice h2 { font-size: 1.12rem; }
     .fsrp-site .brand img { width: 75px; height: 44px; }
     .fsrp-site .brand-copy strong { font-size: 1.06rem; }
     .fsrp-site .brand-copy small { font-size: .5rem; max-width: 140px; }

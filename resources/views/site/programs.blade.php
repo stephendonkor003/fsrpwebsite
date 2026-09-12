@@ -2,6 +2,18 @@
 @section('title', __('portal.programme'))
 @section('content')
     @include('site.partials.page-hero', ['title' => __('portal.programme_title'), 'eyebrow' => __('portal.programme'), 'summary' => __('portal.programme_summary'), 'heroImage' => asset('images/caadp/caadp-partnership-1.jpeg')])
+    <aside class="programme-update-band" aria-labelledby="programme-update-title">
+        <div class="container">
+            <div class="programme-update-notice">
+                <span class="programme-update-icon" aria-hidden="true">!</span>
+                <div>
+                    <p class="programme-update-label">{{ __('portal.programme_update_label') }}</p>
+                    <h2 id="programme-update-title">{{ __('portal.programme_update_title') }}</h2>
+                    <p>{{ __('portal.programme_update_text') }}</p>
+                </div>
+            </div>
+        </div>
+    </aside>
     <section class="section programme-events"><div class="container">
         @forelse($programmeEvents as $programmeEvent)
             <div class="programme-event-heading"><div><p class="eyebrow"><span></span>{{ $programmeEvent->start_at?->translatedFormat('d M') }} – {{ $programmeEvent->end_at?->translatedFormat('d M Y') }} · {{ $programmeEvent->translate('venue') }}</p><h2>{{ $programmeEvent->translate('title') }}</h2><p>{{ $programmeEvent->translate('excerpt') }}</p></div>@if($programmeFile = $programmeEvent->resources->firstWhere('category', 'programme'))<a class="button button-dark" href="{{ route('resources.download', [$locale, $programmeFile->id]) }}" download="{{ $programmeFile->original_filename }}">@include('site.partials.icon', ['name' => 'download']){{ __('portal.download_programme') }}</a>@endif</div>

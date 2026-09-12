@@ -55,7 +55,7 @@ class StructuredDataTest extends TestCase
         $event = Event::factory()->make([
             'slug' => '22nd-caadp-partnership-platform',
             'title' => ['en' => '22nd CAADP Partnership Platform', 'ar' => 'منصة شراكة CAADP الثانية والعشرون'],
-            'excerpt' => ['en' => 'Partner event convened by AUC and AUDA-NEPAD.'],
+            'excerpt' => ['en' => 'Partner event convened by African Union Commission (AUC).'],
             'venue' => ['en' => 'Harare, Zimbabwe', 'ar' => 'هراري، زيمبابوي'],
             'start_at' => '2026-09-15 00:00:00',
             'end_at' => '2026-09-18 23:59:59',

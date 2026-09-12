@@ -69,12 +69,49 @@ class PublicSiteTest extends TestCase
 
         $this->get('/en/events/'.FsrpEventPortalSeeder::EVENT_SLUG)
             ->assertOk()
+            ->assertSee(FsrpEventPortalSeeder::REGISTRATION_URL, false)
+            ->assertSee('Register now')
             ->assertSee('Rainbow Towers Hotel and Conference Centre')
             ->assertSee('Who will take part')
             ->assertSee('Passport and visa')
             ->assertSee('Official event contacts')
+            ->assertDontSee('NEPAD', false)
+            ->assertDontSee('nepad.org', false)
             ->assertSee('/images/caadp/caadp-partnership-1.jpeg', false)
             ->assertSee('/images/caadp/caadp-partnership-4.jpeg', false);
+    }
+
+    public function test_caadp_registration_is_available_on_every_homepage_slide(): void
+    {
+        Storage::fake('local');
+        Storage::disk('local')->put(FsrpEventPortalSeeder::BRIEF_PATH, '%PDF-1.7 information note');
+        Storage::disk('local')->put(FsrpEventPortalSeeder::PROGRAMME_PATH, '%PDF-1.7 programme overview');
+        $this->seed(FsrpEventPortalSeeder::class);
+
+        $response = $this->get('/en')
+            ->assertOk()
+            ->assertSee(FsrpEventPortalSeeder::REGISTRATION_URL, false)
+            ->assertSee('Register now');
+
+        $this->assertSame(4, substr_count($response->getContent(), 'href="'.FsrpEventPortalSeeder::REGISTRATION_URL.'"'));
+    }
+
+    public function test_programme_page_shows_update_notice_and_readable_english_punctuation(): void
+    {
+        Storage::fake('local');
+        Storage::disk('local')->put(FsrpEventPortalSeeder::BRIEF_PATH, '%PDF-1.7 information note');
+        Storage::disk('local')->put(FsrpEventPortalSeeder::PROGRAMME_PATH, '%PDF-1.7 programme overview');
+        $this->seed(FsrpEventPortalSeeder::class);
+
+        $this->get('/en/program-outline')
+            ->assertOk()
+            ->assertSee('class="programme-update-notice"', false)
+            ->assertSee('Programme updates in progress')
+            ->assertSee('Session details and timings may change')
+            ->assertSee('Day 2 · Country readiness & REC delivery')
+            ->assertSee('identify 1–3 priority actions')
+            ->assertDontSee('Â·', false)
+            ->assertDontSee('â€“', false);
     }
 
     public function test_event_search_matches_arabic_translations(): void

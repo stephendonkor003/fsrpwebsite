@@ -36,10 +36,10 @@ class FsrpEventPortalSeederTest extends TestCase
         $event = Event::where('slug', FsrpEventPortalSeeder::EVENT_SLUG)->firstOrFail();
         $this->assertSame('2026-09-15', $event->start_at->toDateString());
         $this->assertSame('2026-09-18', $event->end_at->toDateString());
-        $this->assertNull($event->registration_url);
+        $this->assertSame(FsrpEventPortalSeeder::REGISTRATION_URL, $event->registration_url);
         $this->assertSame('/images/caadp/caadp-partnership-4.jpeg', $event->image);
         $this->assertSame('Rainbow Towers Hotel and Conference Centre, Harare, Zimbabwe', $event->translate('venue', 'en'));
-        $this->assertSame('Partner event | AUC and AUDA-NEPAD | From the CAADP Strategy and Action Plan 2026-2035 to practical country and regional delivery.', $event->translate('excerpt', 'en'));
+        $this->assertSame('Partner event | African Union Commission (AUC) | From the CAADP Strategy and Action Plan 2026-2035 to practical country and regional delivery.', $event->translate('excerpt', 'en'));
         $this->assertStringContainsString('AUC', $event->translate('body', 'en'));
         $this->assertStringContainsString('PARTNER EVENT', $event->translate('body', 'en'));
         $this->assertSame(['2026-09-15', '2026-09-16', '2026-09-17', '2026-09-18'],
@@ -69,6 +69,13 @@ class FsrpEventPortalSeederTest extends TestCase
         $this->assertSame(['programme', 'brief'], $event->resources()->orderBy('sort_order')->pluck('category')->all());
         $this->assertSame('application/pdf', $event->resources()->where('category', 'brief')->firstOrFail()->mime_type);
         $this->assertSame(['en', 'fr', 'ar', 'pt', 'es', 'sw'], array_keys($event->title));
+        $this->assertStringNotContainsString('nepad', strtolower(json_encode([
+            $event->excerpt,
+            $event->body,
+            $event->resources()->pluck('description'),
+            Faq::query()->pluck('answer'),
+            NewsPost::query()->pluck('body'),
+        ], JSON_THROW_ON_ERROR)));
 
         $this->seed(FsrpEventPortalSeeder::class);
 

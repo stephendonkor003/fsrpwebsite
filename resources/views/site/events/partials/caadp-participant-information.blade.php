@@ -21,7 +21,7 @@
                 <span class="resource-category">Who will take part</span>
                 <h3>A continental working platform</h3>
             </div>
-            <p>The convening brings together the African Union Commission and AUDA-NEPAD with Member States, regional economic communities, technical institutions and development partners. Participants are either AUC-sponsored or self-sponsored, with different travel and accommodation arrangements.</p>
+            <p>The convening brings together the African Union Commission with Member States, regional economic communities, technical institutions and development partners. Participants are either AUC-sponsored or self-sponsored, with different travel and accommodation arrangements.</p>
         </div>
 
         <div class="caadp-information-grid">
@@ -79,9 +79,9 @@
         <section class="caadp-contacts" aria-labelledby="caadp-contacts-title">
             <div><p class="eyebrow eyebrow-light"><span></span>Need assistance?</p><h2 id="caadp-contacts-title">Official event contacts</h2><p>Use the right contact group for coordination, technical questions or administrative support.</p></div>
             <div class="caadp-contact-groups">
-                <div><h3>Coordination</h3><a href="mailto:AyasonM@africanunion.org">Mr. Kennedy Ayason</a><a href="mailto:clementa@nepad.org">Dr. Clement Adjorlolo</a><a href="mailto:mngamundani@gmail.com">Mr. Moses Gamundani</a></div>
+                <div><h3>Coordination</h3><a href="mailto:AyasonM@africanunion.org">Mr. Kennedy Ayason</a></div>
                 <div><h3>Technical clarifications</h3><a href="mailto:Obua-OgwalA@africanunion.org">Ms. Agnes Obua-Ogwal</a><a href="mailto:OnyaloE@africanunion.org">Mr. Edwin Odhiambo Onyalo</a></div>
-                <div><h3>Administrative clarifications</h3><a href="mailto:sileshim@africanunion.org">Ms. Mahlet Sileshi</a><a href="mailto:RumeE@africanunion.org">Ms. Elizabeth Rume</a><a href="mailto:JacintaN@nepad.org">Ms. Jacinta Ndegwa</a><p>+251 911 239 235 · +234 803 655 0193 · +27 72 219 4120</p></div>
+                <div><h3>Administrative clarifications</h3><a href="mailto:sileshim@africanunion.org">Ms. Mahlet Sileshi</a><a href="mailto:RumeE@africanunion.org">Ms. Elizabeth Rume</a><p>+251 911 239 235 · +234 803 655 0193</p></div>
             </div>
         </section>
     </div>

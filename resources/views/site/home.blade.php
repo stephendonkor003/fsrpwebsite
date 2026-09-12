@@ -19,6 +19,9 @@
                                 <p class="hero-summary">{{ $slide->translate('subtitle') }}</p>
                                 <div class="hero-actions">
                                     <a class="button button-gold" href="{{ $slide->buttonUrlForLocale($locale) ?? route('events.index', $locale) }}">{{ $slide->translate('button_text') ?: __('portal.explore') }} @include('site.partials.icon', ['name' => 'arrow'])</a>
+                                    @if($featuredEvent?->registration_url)
+                                        <a class="button button-outline-light" href="{{ $featuredEvent->registration_url }}" target="_blank" rel="noopener">{{ __('ui.actions.register_now') }} @include('site.partials.icon', ['name' => 'external'])</a>
+                                    @endif
                                     <a class="hero-secondary" href="{{ route('resources.index', $locale) }}">@include('site.partials.icon', ['name' => 'download']){{ __('portal.downloads') }}</a>
                                 </div>
                             </div>
