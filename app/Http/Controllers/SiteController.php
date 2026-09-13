@@ -24,6 +24,7 @@ class SiteController extends Controller
     {
         return view('site.home', array_merge($this->shared(), [
             'slides' => Slide::where('is_active', true)->orderByRaw("(video_url IS NOT NULL AND video_url <> '') DESC")->orderBy('sort_order')->get(),
+            'speakers' => $this->speakerProfiles(),
             'featuredEvent' => Event::where('is_published', true)->where('is_featured', true)->currentOrUpcoming()
                 ->with(['resources' => fn (HasMany $query) => $query->published()->orderBy('sort_order')])->orderBy('start_at')->first(),
             'resources' => EventResource::with('event')->published()->latest()->limit(3)->get(),
@@ -153,13 +154,7 @@ class SiteController extends Controller
     public function speakers(): View
     {
         return view('site.speakers', array_merge($this->shared(), [
-            'speakers' => [
-                ['name' => 'H.E. Moses Vilakati', 'title' => 'Commissioner, Agriculture, Rural Development, Blue Economy and Sustainable Environment (ARBE)', 'organisation' => 'African Union Commission', 'image' => 'images/speakers/moses-vilakati.png'],
-                ['name' => 'Nardos Bekele-Thomas', 'title' => 'CEO of AUDA-NEPAD', 'organisation' => 'African Union Development Agency – NEPAD', 'image' => 'images/speakers/nardos-bekele-thomas.png'],
-                ['name' => 'Dr. Anxious Jongwe Masuka', 'title' => 'Minister for Agriculture, Mechanization and Water Resources Development', 'organisation' => 'Zimbabwe', 'image' => 'images/speakers/anxious-jongwe-masuka.png'],
-                ['name' => 'Elias Mpedi Magosi', 'title' => 'Executive Secretary', 'organisation' => 'SADC Secretariat', 'image' => 'images/speakers/elias-mpedi-magosi.png'],
-                ['name' => 'Gabriel Mbairobe', 'title' => 'Minister of Agriculture and Rural Development, Cameroon, and Chairperson of the African Union Specialized Technical Committee on Agriculture, Rural Development, Water and Environment (STC-ARBE)', 'organisation' => 'Cameroon', 'image' => 'images/speakers/gabriel-mbairobe.png'],
-            ],
+            'speakers' => $this->speakerProfiles(),
         ]));
     }
 
@@ -198,6 +193,20 @@ class SiteController extends Controller
             'siteSettings' => Setting::all()->mapWithKeys(fn (Setting $setting): array => [$setting->key => $setting->value])->all(),
             'locales' => config('locales.supported'),
             'locale' => app()->getLocale(),
+        ];
+    }
+
+    /**
+     * @return array<int, array{name: string, title: string, organisation: string, image: string}>
+     */
+    private function speakerProfiles(): array
+    {
+        return [
+            ['name' => 'H.E. Moses Vilakati', 'title' => 'Commissioner, Agriculture, Rural Development, Blue Economy and Sustainable Environment (ARBE)', 'organisation' => 'African Union Commission', 'image' => 'images/speakers/moses-vilakati.png'],
+            ['name' => 'Nardos Bekele-Thomas', 'title' => 'CEO of AUDA-NEPAD', 'organisation' => 'African Union Development Agency – NEPAD', 'image' => 'images/speakers/nardos-bekele-thomas.png'],
+            ['name' => 'Dr. Anxious Jongwe Masuka', 'title' => 'Minister for Agriculture, Mechanization and Water Resources Development', 'organisation' => 'Zimbabwe', 'image' => 'images/speakers/anxious-jongwe-masuka.png'],
+            ['name' => 'Elias Mpedi Magosi', 'title' => 'Executive Secretary', 'organisation' => 'SADC Secretariat', 'image' => 'images/speakers/elias-mpedi-magosi.png'],
+            ['name' => 'Gabriel Mbairobe', 'title' => 'Minister of Agriculture and Rural Development, Cameroon, and Chairperson of the African Union Specialized Technical Committee on Agriculture, Rural Development, Water and Environment (STC-ARBE)', 'organisation' => 'Cameroon', 'image' => 'images/speakers/gabriel-mbairobe.png'],
         ];
     }
 }

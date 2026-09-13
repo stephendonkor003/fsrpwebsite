@@ -94,7 +94,15 @@ class PublicSiteTest extends TestCase
             ->assertSee(FsrpEventPortalSeeder::REGISTRATION_URL, false)
             ->assertSee('Register now');
 
-        $this->assertSame(4, substr_count($response->getContent(), 'href="'.FsrpEventPortalSeeder::REGISTRATION_URL.'"'));
+        $this->assertSame(9, substr_count($response->getContent(), 'href="'.FsrpEventPortalSeeder::REGISTRATION_URL.'"'));
+        $this->assertSame(9, substr_count($response->getContent(), ' data-slide'));
+        $response->assertSee('H.E. Moses Vilakati')
+            ->assertSee('Nardos Bekele-Thomas')
+            ->assertSee('Dr. Anxious Jongwe Masuka')
+            ->assertSee('Elias Mpedi Magosi')
+            ->assertSee('Gabriel Mbairobe')
+            ->assertSee('/images/speakers/moses-vilakati.png', false)
+            ->assertSee(route('speakers', 'en'), false);
     }
 
     public function test_programme_page_shows_update_notice_and_readable_english_punctuation(): void

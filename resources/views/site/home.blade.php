@@ -2,10 +2,14 @@
 
 @section('title', __('ui.nav.home'))
 @section('content')
+    @php
+        $heroSlideCount = $slides->count() + count($speakers);
+        $speakerSlideOffset = $slides->count();
+    @endphp
     @if($homeSections->contains('key', 'hero'))
         <section class="hero fsrp-hero" aria-label="{{ __('ui.home.featured_stories') }}" aria-roledescription="carousel" data-carousel>
             <div class="hero-slides">
-                @forelse($slides as $slide)
+                @foreach($slides as $slide)
                     <article class="hero-slide {{ $loop->first ? 'active' : '' }}" data-slide aria-hidden="{{ $loop->first ? 'false' : 'true' }}" @if(! $loop->first) inert @endif>
                         <img src="{{ $slide->image ?: asset('images/fsrp/field-implementation.jpeg') }}" alt="" fetchpriority="{{ $loop->first ? 'high' : 'low' }}">
                         @if($slide->video_url)
@@ -27,19 +31,44 @@
                             </div>
                         </div>
                     </article>
-                @empty
+                @endforeach
+                @foreach($speakers as $speaker)
+                    @php
+                        $speakerSlideIndex = $speakerSlideOffset + $loop->index;
+                        $isFirstHeroSlide = $speakerSlideIndex === 0;
+                    @endphp
+                    <article class="hero-slide hero-slide-speaker {{ $isFirstHeroSlide ? 'active' : '' }}" data-slide aria-hidden="{{ $isFirstHeroSlide ? 'false' : 'true' }}" @if(! $isFirstHeroSlide) inert @endif>
+                        <img src="{{ asset($speaker['image']) }}" alt="" fetchpriority="low">
+                        <div class="hero-overlay"></div>
+                        <div class="container hero-content">
+                            <div class="hero-copy">
+                                <p class="eyebrow eyebrow-light"><span></span>{{ __('ui.sessions.speaker') }} · {{ $speaker['organisation'] }}</p>
+                                @if($isFirstHeroSlide)<h1>{{ $speaker['name'] }}</h1>@else<h2 class="hero-title">{{ $speaker['name'] }}</h2>@endif
+                                <p class="hero-summary">{{ $speaker['title'] }}</p>
+                                <div class="hero-actions">
+                                    <a class="button button-gold" href="{{ route('speakers', $locale) }}">{{ __('ui.sessions.speakers') }} @include('site.partials.icon', ['name' => 'arrow'])</a>
+                                    @if($featuredEvent?->registration_url)
+                                        <a class="button button-outline-light" href="{{ $featuredEvent->registration_url }}" target="_blank" rel="noopener">{{ __('ui.actions.register_now') }} @include('site.partials.icon', ['name' => 'external'])</a>
+                                    @endif
+                                </div>
+                            </div>
+                        </div>
+                    </article>
+                @endforeach
+                @if($heroSlideCount === 0)
                     <article class="hero-slide active" data-slide>
                         <img src="{{ asset('images/fsrp/field-implementation.jpeg') }}" alt="">
                         <div class="hero-overlay"></div>
                         <div class="container hero-content"><div class="hero-copy"><p class="eyebrow eyebrow-light">{{ __('portal.descriptor') }}</p><h1>{{ __('portal.events_title') }}</h1><p class="hero-summary">{{ __('portal.events_summary') }}</p><a class="button button-gold" href="{{ route('events.index', $locale) }}">{{ __('portal.explore') }} @include('site.partials.icon', ['name' => 'arrow'])</a></div></div>
                     </article>
-                @endforelse
+                @endif
             </div>
             <div class="container hero-bottom">
                 <div class="hero-controls">
                     <button type="button" data-carousel-prev aria-label="{{ __('ui.common.previous_slide') }}"><svg aria-hidden="true" viewBox="0 0 24 24"><path d="m15 18-6-6 6-6"/></svg></button>
                     <div class="hero-dots" aria-label="{{ __('ui.common.choose_slide') }}">
                         @foreach($slides as $slide)<button type="button" data-carousel-dot="{{ $loop->index }}" @class(['active' => $loop->first]) aria-label="{{ __('ui.common.slide_number', ['number' => $loop->iteration]) }}" aria-pressed="{{ $loop->first ? 'true' : 'false' }}"><span></span></button>@endforeach
+                        @foreach($speakers as $speaker)<button type="button" data-carousel-dot="{{ $speakerSlideOffset + $loop->index }}" @class(['active' => $slides->isEmpty() && $loop->first]) aria-label="{{ __('ui.common.slide_number', ['number' => $speakerSlideOffset + $loop->iteration]) }}: {{ $speaker['name'] }}" aria-pressed="{{ $slides->isEmpty() && $loop->first ? 'true' : 'false' }}"><span></span></button>@endforeach
                     </div>
                     <button type="button" data-carousel-next aria-label="{{ __('ui.common.next_slide') }}"><svg aria-hidden="true" viewBox="0 0 24 24"><path d="m9 18 6-6-6-6"/></svg></button>
                     <button class="carousel-pause" type="button" data-carousel-pause aria-label="{{ __('portal.pause') }}" data-play-label="{{ __('portal.resume') }}" data-pause-label="{{ __('portal.pause') }}"><svg class="pause-icon" aria-hidden="true" viewBox="0 0 24 24"><path d="M9 5v14M15 5v14"/></svg><svg class="play-icon" aria-hidden="true" viewBox="0 0 24 24"><path d="m8 5 11 7-11 7Z"/></svg></button>
