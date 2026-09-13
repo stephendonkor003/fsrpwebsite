@@ -14,6 +14,10 @@ return [
             'title' => 'Event Programmes & Daily Sessions',
             'description' => 'Explore daily event programmes, planned sessions and themes. Prepare for FSRP and partner discussions and download available programme outlines.',
         ],
+        'speakers' => [
+            'title' => 'المتحدثون والقادة البارزون',
+            'description' => 'تعرّفوا على القادة والمتحدثين الذين يقودون الحوار حول التحول الزراعي والتنمية الريفية والنظم الغذائية القادرة على الصمود في أفريقيا.',
+        ],
         'resources' => [
             'title' => 'Event Resources & Programme Downloads',
             'description' => 'Download available FSRP event programmes, information briefs, presentations and reports. Search resources by event, document type and language.',

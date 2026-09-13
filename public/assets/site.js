@@ -192,6 +192,15 @@
             }
         });
     });
+    document.querySelectorAll('[data-speaker-open]').forEach((button) => {
+        const modal = document.getElementById(button.dataset.speakerOpen);
+
+        button.addEventListener('click', () => modal?.showModal());
+        modal?.querySelector('[data-speaker-close]')?.addEventListener('click', () => modal.close());
+        modal?.addEventListener('click', (event) => {
+            if (event.target === modal) modal.close();
+        });
+    });
     document.querySelectorAll('[data-africa-map]').forEach((map) => {
         const countries = [...map.querySelectorAll('[data-map-country]')];
         const regionButtons = [...map.querySelectorAll('[data-region-filter]')];

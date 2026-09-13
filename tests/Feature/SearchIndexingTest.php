@@ -75,11 +75,11 @@ class SearchIndexingTest extends TestCase
         $xml = $this->xml($response->getContent());
         $entries = $xml->xpath('//s:url');
 
-        $this->assertCount(42, $entries);
+        $this->assertCount(48, $entries);
         $this->assertCount(0, $xml->xpath('//s:lastmod'));
 
         foreach (['en', 'fr', 'ar', 'pt', 'es', 'sw'] as $locale) {
-            foreach (['', '/about', '/events', '/program-outline', '/resources', '/news', '/faq'] as $path) {
+            foreach (['', '/about', '/events', '/program-outline', '/speakers', '/resources', '/news', '/faq'] as $path) {
                 $url = 'https://fsrp.africa/'.$locale.$path;
                 $matching = $xml->xpath('//s:url[s:loc="'.$url.'"]');
                 $this->assertCount(1, $matching);
@@ -112,7 +112,7 @@ class SearchIndexingTest extends TestCase
             ->assertDontSee('/admin')->assertDontSee('/download')->assertDontSee('?q=')->assertDontSee('?category=');
         $xml = $this->xml($response->getContent());
 
-        $this->assertCount(60, $xml->xpath('//s:url'));
+        $this->assertCount(66, $xml->xpath('//s:url'));
         $this->assertCount(18, $xml->xpath('//s:lastmod'));
         $eventEntry = $xml->xpath('//s:url[s:loc="https://fsrp.africa/en/events/public-convening"]')[0];
         $this->assertSame('2026-09-01T09:30:00+00:00', (string) $eventEntry->lastmod);
@@ -140,7 +140,7 @@ class SearchIndexingTest extends TestCase
         $response = $this->get('/sitemap.xml')->assertOk()->assertDontSee('<untrusted>', false);
 
         $xml = $this->xml($response->getContent());
-        $this->assertCount(48, $xml->xpath('//s:url'));
+        $this->assertCount(54, $xml->xpath('//s:url'));
         $this->assertCount(0, $xml->xpath('//untrusted'));
     }
 

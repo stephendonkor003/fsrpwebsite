@@ -101,6 +101,7 @@ class Seo
             'events.index', 'events.show' => 'events',
             'news.index', 'news.show' => 'news',
             'programs' => 'programmes',
+            'speakers' => 'speakers',
             'resources.index' => 'resources',
             'about' => 'about',
             'faq' => 'faq',

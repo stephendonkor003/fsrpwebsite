@@ -45,6 +45,7 @@ Route::prefix('{locale}')->where(['locale' => 'en|fr|ar|pt|es|sw'])->middleware(
     Route::get('/news', [SiteController::class, 'news'])->name('news.index');
     Route::get('/news/{slug}', [SiteController::class, 'newsPost'])->name('news.show');
     Route::get('/program-outline', [SiteController::class, 'programs'])->name('programs');
+    Route::get('/speakers', [SiteController::class, 'speakers'])->name('speakers');
     Route::get('/resources', [SiteController::class, 'resources'])->name('resources.index');
     Route::get('/resources/{resource}/download', ResourceDownloadController::class)->whereNumber('resource')->name('resources.download');
     Route::get('/faq', [SiteController::class, 'faq'])->name('faq');

@@ -14,6 +14,10 @@ return [
             'title' => 'Event Programmes & Daily Sessions',
             'description' => 'Explore daily event programmes, planned sessions and themes. Prepare for FSRP and partner discussions and download available programme outlines.',
         ],
+        'speakers' => [
+            'title' => 'Featured Speakers & Leaders',
+            'description' => 'Meet the distinguished leaders and speakers guiding dialogue on agricultural transformation, rural development and resilient food systems across Africa.',
+        ],
         'resources' => [
             'title' => 'Event Resources & Programme Downloads',
             'description' => 'Download available FSRP event programmes, information briefs, presentations and reports. Search resources by event, document type and language.',

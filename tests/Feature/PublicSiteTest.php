@@ -51,6 +51,7 @@ class PublicSiteTest extends TestCase
         $this->get('/en/events')->assertOk();
         $this->get('/en/news')->assertOk();
         $this->get('/en/program-outline')->assertOk();
+        $this->get('/en/speakers')->assertOk();
         $this->get('/en/faq')->assertOk();
 
         $event = Event::where('is_published', true)->firstOrFail();

@@ -33,7 +33,7 @@ class SearchEngineController extends Controller
     {
         $pages = [];
 
-        foreach (['home', 'about', 'events.index', 'programs', 'resources.index', 'news.index', 'faq'] as $route) {
+        foreach (['home', 'about', 'events.index', 'programs', 'speakers', 'resources.index', 'news.index', 'faq'] as $route) {
             $pages[] = ['route' => $route, 'parameters' => [], 'lastmod' => null];
         }
 

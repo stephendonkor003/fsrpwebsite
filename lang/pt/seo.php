@@ -14,6 +14,10 @@ return [
             'title' => 'Programas dos eventos e sessões diárias',
             'description' => 'Explore os programas diários, as sessões e os temas dos eventos. Prepare-se para os debates do FSRP e dos parceiros e descarregue os resumos disponíveis.',
         ],
+        'speakers' => [
+            'title' => 'Oradores e líderes convidados',
+            'description' => 'Conheça os líderes e oradores que orientam o diálogo sobre transformação agrícola, desenvolvimento rural e sistemas alimentares resilientes em África.',
+        ],
         'resources' => [
             'title' => 'Recursos dos eventos e programas para descarregar',
             'description' => 'Descarregue programas, notas informativas, apresentações e relatórios dos eventos FSRP. Pesquise os documentos disponíveis por evento, tipo e idioma.',

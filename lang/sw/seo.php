@@ -14,6 +14,10 @@ return [
             'title' => 'Ratiba za Matukio na Vikao vya Kila Siku',
             'description' => 'Chunguza ratiba za kila siku, vikao na mada zilizopangwa. Jiandae kwa majadiliano ya FSRP na washirika wake na upakue mihtasari ya ratiba iliyopo.',
         ],
+        'speakers' => [
+            'title' => 'Wazungumzaji na viongozi mashuhuri',
+            'description' => 'Kutana na viongozi na wazungumzaji wanaoongoza mazungumzo kuhusu mageuzi ya kilimo, maendeleo ya vijijini na mifumo thabiti ya chakula barani Afrika.',
+        ],
         'resources' => [
             'title' => 'Nyenzo za Matukio na Ratiba za Kupakua',
             'description' => 'Pakua ratiba, muhtasari wa taarifa, mawasilisho na ripoti za matukio ya FSRP. Tafuta nyaraka zilizopo kulingana na tukio, aina ya hati na lugha yake.',

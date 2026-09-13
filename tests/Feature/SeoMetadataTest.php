@@ -45,15 +45,15 @@ class SeoMetadataTest extends TestCase
     {
         $descriptions = [];
 
-        foreach (['', '/events', '/news', '/program-outline', '/resources', '/about', '/faq'] as $path) {
+        foreach (['', '/events', '/news', '/program-outline', '/speakers', '/resources', '/about', '/faq'] as $path) {
             $document = $this->document($this->get('https://fsrp.africa/en'.$path)->assertOk()->getContent());
             $descriptions[] = $document->evaluate('string(//meta[@name="description"]/@content)');
         }
 
-        $this->assertCount(7, array_unique($descriptions));
+        $this->assertCount(8, array_unique($descriptions));
 
         $french = $this->document($this->get('https://fsrp.africa/fr/resources')->assertOk()->getContent());
-        $this->assertNotSame($descriptions[4], $french->evaluate('string(//meta[@name="description"]/@content)'));
+        $this->assertNotSame($descriptions[5], $french->evaluate('string(//meta[@name="description"]/@content)'));
         $this->assertSame('https://fsrp.africa/fr/resources', $french->evaluate('string(//link[@hreflang="fr"]/@href)'));
     }
 
