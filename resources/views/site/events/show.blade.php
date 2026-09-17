@@ -12,7 +12,15 @@
             <nav class="breadcrumbs" aria-label="{{ __('ui.common.breadcrumbs') }}"><a href="{{ route('home', $locale) }}">{{ __('ui.nav.home') }}</a><span>/</span><a href="{{ route('events.index', $locale) }}">{{ __('ui.nav.events') }}</a></nav>
             <div class="detail-badges"><span class="tag tag-gold">{{ __('ui.events.modes.'.$event->mode) }}</span>@if($event->slug === '22nd-caadp-partnership-platform')<span class="tag tag-outline">{{ __('portal.partner_event') }} · CAADP</span>@endif</div>
             <h1>{{ $event->translate('title') }}</h1><p>{{ $event->translate('excerpt') }}</p>
-            <div class="hero-actions">@if($programmeFile = $resources->firstWhere('category', 'programme'))<a class="button button-gold" href="{{ route('resources.download', [$locale, $programmeFile->id]) }}" download="{{ $programmeFile->original_filename }}">@include('site.partials.icon', ['name' => 'download']){{ __('portal.download_programme') }}</a>@endif<a class="hero-secondary" href="#programme">{{ __('portal.daily_programme') }} @include('site.partials.icon', ['name' => 'arrow'])</a></div>
+            <div class="hero-actions">
+                @if($programmeFile = $resources->firstWhere('category', 'programme'))
+                    <a class="button button-gold" href="{{ route('resources.download', [$locale, $programmeFile->id]) }}" download="{{ $programmeFile->original_filename }}">@include('site.partials.icon', ['name' => 'download']){{ __('portal.download_programme') }}</a>
+                @endif
+                @if($galleryDays !== [])
+                    <a class="button button-outline-light" href="#event-gallery">{{ __('portal.view_gallery') }} @include('site.partials.icon', ['name' => 'arrow'])</a>
+                @endif
+                <a class="hero-secondary" href="#programme">{{ __('portal.daily_programme') }} @include('site.partials.icon', ['name' => 'arrow'])</a>
+            </div>
         </div>
     </section>
     <section class="detail-facts"><div class="container detail-facts-grid">
@@ -31,6 +39,9 @@
     </div></section>
     @if($isCaadpEvent)
         @include('site.events.partials.caadp-participant-information')
+    @endif
+    @if($galleryDays !== [])
+        @include('site.events.partials.event-gallery')
     @endif
     @if($sessions->isNotEmpty())
         <section class="section agenda-section" id="programme"><div class="container"><div class="section-heading split-heading"><div><p class="eyebrow"><span></span>{{ __('ui.events.schedule') }}</p><h2>{{ __('portal.daily_programme') }}</h2></div><p>{{ __('portal.daily_summary') }}</p></div>

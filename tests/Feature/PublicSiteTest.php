@@ -2,11 +2,13 @@
 
 namespace Tests\Feature;
 
+use App\EventGallery;
 use App\Models\Event;
 use App\Models\Faq;
 use App\Models\NewsPost;
 use Database\Seeders\FsrpEventPortalSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Storage;
 use PHPUnit\Framework\Attributes\TestWith;
 use Tests\TestCase;
@@ -80,6 +82,72 @@ class PublicSiteTest extends TestCase
             ->assertDontSee('nepad.org', false)
             ->assertSee('/images/caadp/caadp-partnership-1.jpeg', false)
             ->assertSee('/images/caadp/caadp-partnership-4.jpeg', false);
+    }
+
+    public function test_caadp_event_displays_all_media_grouped_by_day_in_natural_order(): void
+    {
+        Storage::fake('local');
+        Storage::disk('local')->put(FsrpEventPortalSeeder::BRIEF_PATH, '%PDF-1.7 information note');
+        Storage::disk('local')->put(FsrpEventPortalSeeder::PROGRAMME_PATH, '%PDF-1.7 programme overview');
+        $this->seed(FsrpEventPortalSeeder::class);
+
+        $response = $this->get('/en/events/'.FsrpEventPortalSeeder::EVENT_SLUG)
+            ->assertOk()
+            ->assertSee('View event gallery')
+            ->assertSee('121 photos')
+            ->assertSee('id="event-gallery-day-1"', false)
+            ->assertSee('id="event-gallery-day-2"', false)
+            ->assertSee('/media/events/22nd-caadp-partnership-platform/2026-09-15-day-01/photos/caadp-2026-d01-001.jpg', false)
+            ->assertSee('/media/events/22nd-caadp-partnership-platform/2026-09-15-day-01/photos/caadp-2026-d01-085.jpg', false)
+            ->assertSee('/media/events/22nd-caadp-partnership-platform/2026-09-16-day-02/photos/caadp-2026-d02-001.jpg', false)
+            ->assertSee('/media/events/22nd-caadp-partnership-platform/2026-09-16-day-02/photos/caadp-2026-d02-038.jpg', false)
+            ->assertViewHas('galleryDays', function (array $galleryDays): bool {
+                return array_column($galleryDays, 'day') === [1, 2]
+                    && array_column($galleryDays, 'count') === [83, 38]
+                    && array_column($galleryDays[0]['items'], 'sequence') === array_merge(range(1, 81), [84, 85])
+                    && array_column($galleryDays[1]['items'], 'sequence') === range(1, 38);
+            });
+
+        $content = $response->getContent();
+
+        $this->assertSame(121, substr_count($content, 'class="event-gallery-card"'));
+        $this->assertSame(121, substr_count($content, ' loading="lazy" decoding="async"'));
+        $this->assertLessThan(
+            strpos($content, 'caadp-2026-d01-010.jpg'),
+            strpos($content, 'caadp-2026-d01-002.jpg'),
+        );
+    }
+
+    public function test_event_gallery_scanner_rejects_invalid_paths_and_discovers_supported_media(): void
+    {
+        $eventSlug = 'gallery-scanner-test-'.getmypid();
+        $eventDirectory = public_path('media/events/'.$eventSlug);
+
+        File::ensureDirectoryExists($eventDirectory.'/2026-13-40-day-03/photos');
+        File::put($eventDirectory.'/2026-13-40-day-03/photos/invalid-001.jpg', 'invalid date');
+        File::ensureDirectoryExists($eventDirectory.'/2026-09-17-day-00/photos');
+        File::put($eventDirectory.'/2026-09-17-day-00/photos/invalid-001.jpg', 'invalid day');
+        File::ensureDirectoryExists($eventDirectory.'/2026-09-17-day-03/photos');
+        File::put($eventDirectory.'/2026-09-17-day-03/photos/photo-002.jpg', 'photo');
+        File::put($eventDirectory.'/2026-09-17-day-03/photos/ignored-003.txt', 'unsupported');
+        File::ensureDirectoryExists($eventDirectory.'/2026-09-17-day-03/videos');
+        File::put($eventDirectory.'/2026-09-17-day-03/videos/video-010.mp4', 'video');
+        File::ensureDirectoryExists($eventDirectory.'/2026-09-18-day-03/photos');
+        File::put($eventDirectory.'/2026-09-18-day-03/photos/duplicate-001.jpg', 'duplicate day');
+
+        try {
+            $gallery = app(EventGallery::class);
+            $days = $gallery->forEvent($eventSlug);
+
+            $this->assertSame([], $gallery->forEvent('../'.$eventSlug));
+            $this->assertCount(1, $days);
+            $this->assertSame(3, $days[0]['day']);
+            $this->assertSame('2026-09-17', $days[0]['date']);
+            $this->assertSame([2, 10], array_column($days[0]['items'], 'sequence'));
+            $this->assertSame(['image', 'video'], array_column($days[0]['items'], 'type'));
+        } finally {
+            File::deleteDirectory($eventDirectory);
+        }
     }
 
     public function test_caadp_registration_is_available_on_every_homepage_slide(): void

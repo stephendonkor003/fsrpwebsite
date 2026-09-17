@@ -252,6 +252,111 @@
         picker.addEventListener('change', () => chooseCountry(picker.value));
     });
 
+    document.querySelectorAll('[data-event-gallery]').forEach((gallery) => {
+        const items = [...gallery.querySelectorAll('[data-gallery-item]')];
+        const dialog = gallery.querySelector('[data-gallery-dialog]');
+        const dialogImage = dialog?.querySelector('[data-gallery-dialog-image]');
+        const dialogVideo = dialog?.querySelector('[data-gallery-dialog-video]');
+        const caption = dialog?.querySelector('[data-gallery-dialog-caption]');
+        const counter = dialog?.querySelector('[data-gallery-dialog-counter]');
+
+        if (!items.length || !dialog || !dialogImage || !dialogVideo || !caption || !counter) return;
+
+        let currentIndex = 0;
+        let activeTrigger;
+
+        const stopDialogVideo = () => {
+            dialogVideo.pause();
+            dialogVideo.removeAttribute('src');
+            dialogVideo.load();
+        };
+        const showItem = (index) => {
+            currentIndex = (index + items.length) % items.length;
+            const item = items[currentIndex];
+            const source = item.dataset.gallerySrc;
+            const itemCaption = item.dataset.galleryCaption || '';
+            const isVideo = item.dataset.galleryType === 'video';
+
+            caption.textContent = itemCaption;
+            counter.textContent = `${currentIndex + 1} / ${items.length}`;
+
+            if (isVideo) {
+                dialogImage.hidden = true;
+                dialogImage.removeAttribute('src');
+                dialogImage.alt = '';
+                dialogVideo.hidden = false;
+                dialogVideo.src = source;
+                dialogVideo.load();
+
+                return;
+            }
+
+            stopDialogVideo();
+            dialogVideo.hidden = true;
+            dialogImage.hidden = false;
+            dialogImage.alt = itemCaption;
+            dialogImage.src = source;
+        };
+        const openItem = (index) => {
+            activeTrigger = items[index];
+            showItem(index);
+
+            if (!dialog.open) dialog.showModal();
+        };
+
+        items.forEach((item, index) => item.addEventListener('click', (event) => {
+            event.preventDefault();
+            openItem(index);
+        }));
+        dialog.querySelector('[data-gallery-close]')?.addEventListener('click', () => dialog.close());
+        dialog.querySelector('[data-gallery-prev]')?.addEventListener('click', () => showItem(currentIndex - 1));
+        dialog.querySelector('[data-gallery-next]')?.addEventListener('click', () => showItem(currentIndex + 1));
+        dialog.addEventListener('click', (event) => {
+            if (event.target === dialog) dialog.close();
+        });
+        dialog.addEventListener('keydown', (event) => {
+            if (event.key !== 'ArrowLeft' && event.key !== 'ArrowRight') return;
+            if (event.target === dialogVideo) return;
+
+            event.preventDefault();
+            const direction = event.key === 'ArrowRight' ? 1 : -1;
+            showItem(currentIndex + (document.documentElement.dir === 'rtl' ? -direction : direction));
+        });
+        dialog.addEventListener('close', () => {
+            stopDialogVideo();
+            dialogImage.removeAttribute('src');
+            activeTrigger?.focus();
+        });
+
+        gallery.querySelectorAll('.event-gallery-day-links a').forEach((link) => {
+            link.addEventListener('click', () => {
+                const day = gallery.querySelector(link.getAttribute('href'));
+                if (day) day.open = true;
+            });
+        });
+
+        const previewVideos = [...gallery.querySelectorAll('[data-gallery-preview-video]')];
+        if ('IntersectionObserver' in window) {
+            const videoObserver = new IntersectionObserver((entries, observer) => {
+                entries.forEach((entry) => {
+                    if (!entry.isIntersecting) return;
+
+                    const video = entry.target;
+                    video.src = video.dataset.src;
+                    video.load();
+                    observer.unobserve(video);
+                });
+            }, { rootMargin: '240px 0px' });
+
+            previewVideos.forEach((video) => videoObserver.observe(video));
+        } else {
+            previewVideos.forEach((video) => {
+                video.src = video.dataset.src;
+                video.load();
+            });
+        }
+    });
+
     const backToTop = document.querySelector('[data-back-to-top]');
     const updateBackToTop = () => backToTop?.classList.toggle('visible', window.scrollY > 650);
     window.addEventListener('scroll', updateBackToTop, { passive: true });

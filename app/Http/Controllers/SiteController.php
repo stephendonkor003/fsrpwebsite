@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\EventGallery;
 use App\Models\Event;
 use App\Models\EventResource;
 use App\Models\Faq;
@@ -68,12 +69,13 @@ class SiteController extends Controller
         return view('site.events.index', array_merge($this->shared(), compact('events', 'search', 'mode', 'period')));
     }
 
-    public function event(string $locale, string $slug): View
+    public function event(EventGallery $eventGallery, string $locale, string $slug): View
     {
         $event = Event::where('slug', $slug)->where('is_published', true)->firstOrFail();
 
         return view('site.events.show', array_merge($this->shared(), [
             'event' => $event,
+            'galleryDays' => $eventGallery->forEvent($event->slug),
             'sessions' => $event->sessions()->where('is_published', true)->orderBy('start_at')->orderBy('sort_order')->get(),
             'resources' => $event->resources()->with('event')->published()->orderBy('sort_order')->orderByDesc('created_at')->get(),
         ]));
