@@ -8,7 +8,7 @@
             @forelse($newsPosts as $post)
                 <article class="news-card">
                     <a class="news-image" href="{{ route('news.show', [$locale, $post->slug]) }}">
-                        <img src="{{ $post->image ?: asset(['images/fsrp/field-implementation.jpeg','images/fsrp/water-food-resilience-3.jpg','images/fsrp/field-implementation.jpeg'][$loop->index % 3]) }}" alt="{{ $post->translate('title') }}" loading="lazy" decoding="async">
+                        <img src="{{ $post->image ?: asset('images/seed-investment-summit/seed-investment-summit-2026.jpeg') }}" alt="{{ $post->translate('title') }}" loading="lazy" decoding="async">
                     </a>
                     <div class="news-content">
                         <div class="card-meta"><span class="tag tag-sand">{{ $post->translate('category') }}</span><time datetime="{{ $post->published_at?->toDateString() }}">{{ $post->published_at?->translatedFormat('d M Y') }}</time></div>

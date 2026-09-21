@@ -6,7 +6,7 @@ use App\EventGallery;
 use App\Models\Event;
 use App\Models\Faq;
 use App\Models\NewsPost;
-use Database\Seeders\FsrpEventPortalSeeder;
+use Database\Seeders\CaadpEventArchiveSeeder;
 use Database\Seeders\SeedInvestmentSummitSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\File;
@@ -22,6 +22,9 @@ class PublicSiteTest extends TestCase
     {
         parent::setUp();
 
+        Storage::fake('local');
+        Storage::disk('local')->put(CaadpEventArchiveSeeder::BRIEF_PATH, '%PDF-1.7 information note');
+        Storage::disk('local')->put(CaadpEventArchiveSeeder::PROGRAMME_PATH, '%PDF-1.7 programme overview');
         $this->seed();
     }
 
@@ -64,35 +67,68 @@ class PublicSiteTest extends TestCase
             ->assertSee($event->translate('title', 'en'));
     }
 
-    public function test_caadp_event_displays_supplied_artwork_and_participant_information(): void
+    public function test_past_caadp_event_preserves_archive_information_without_a_stale_registration_cta(): void
     {
         Storage::fake('local');
-        Storage::disk('local')->put(FsrpEventPortalSeeder::BRIEF_PATH, '%PDF-1.7 information note');
-        Storage::disk('local')->put(FsrpEventPortalSeeder::PROGRAMME_PATH, '%PDF-1.7 programme overview');
-        $this->seed(FsrpEventPortalSeeder::class);
+        Storage::disk('local')->put(CaadpEventArchiveSeeder::BRIEF_PATH, '%PDF-1.7 information note');
+        Storage::disk('local')->put(CaadpEventArchiveSeeder::PROGRAMME_PATH, '%PDF-1.7 programme overview');
+        $this->seed(CaadpEventArchiveSeeder::class);
 
-        $this->get('/en/events/'.FsrpEventPortalSeeder::EVENT_SLUG)
+        $response = $this->get('/en/events/'.CaadpEventArchiveSeeder::EVENT_SLUG)
             ->assertOk()
-            ->assertSee(FsrpEventPortalSeeder::REGISTRATION_URL, false)
-            ->assertSee('Register now')
+            ->assertDontSee(CaadpEventArchiveSeeder::REGISTRATION_URL, false)
             ->assertSee('Rainbow Towers Hotel and Conference Centre')
             ->assertSee('Who will take part')
             ->assertSee('Passport and visa')
             ->assertSee('Official event contacts')
-            ->assertDontSee('NEPAD', false)
+            ->assertSee('id="event-speakers"', false)
+            ->assertSee('H.E. Moses Vilakati')
+            ->assertSee('Nardos Bekele-Thomas')
+            ->assertSee('Gabriel Mbairobe')
+            ->assertSee('/images/speakers/moses-vilakati.png', false)
             ->assertDontSee('nepad.org', false)
             ->assertSee('/images/caadp/caadp-partnership-1.jpeg', false)
             ->assertSee('/images/caadp/caadp-partnership-4.jpeg', false);
+
+        $this->assertSame(1, preg_match('#<aside class="event-participation">.*?</aside>#s', $response->getContent(), $participationMatches));
+        $this->assertStringContainsString('This event has concluded', $participationMatches[0]);
+        $this->assertStringNotContainsString('Register now', $participationMatches[0]);
+    }
+
+    public function test_past_single_day_event_without_an_end_time_hides_its_registration_cta(): void
+    {
+        $this->freezeTime();
+        $event = Event::factory()->create([
+            'slug' => 'completed-single-day-event',
+            'title' => ['en' => 'Completed single-day event'],
+            'start_at' => now()->subDay()->startOfDay(),
+            'end_at' => null,
+            'registration_url' => 'https://example.test/completed-event-registration',
+            'is_published' => true,
+        ]);
+
+        $this->get('/en/events/'.$event->slug)
+            ->assertOk()
+            ->assertSee('This event has concluded')
+            ->assertDontSee($event->registration_url, false);
+
+        $listingResponse = $this->get('/en/events')->assertOk();
+        $this->assertSame(1, preg_match(
+            '#<article class="listing-card event-list-card">(?:(?!</article>).)*Completed single-day event(?:(?!</article>).)*</article>#s',
+            $listingResponse->getContent(),
+            $eventCardMatches,
+        ));
+        $this->assertStringContainsString('Past event', $eventCardMatches[0]);
     }
 
     public function test_caadp_event_displays_all_media_grouped_by_day_in_natural_order(): void
     {
         Storage::fake('local');
-        Storage::disk('local')->put(FsrpEventPortalSeeder::BRIEF_PATH, '%PDF-1.7 information note');
-        Storage::disk('local')->put(FsrpEventPortalSeeder::PROGRAMME_PATH, '%PDF-1.7 programme overview');
-        $this->seed(FsrpEventPortalSeeder::class);
+        Storage::disk('local')->put(CaadpEventArchiveSeeder::BRIEF_PATH, '%PDF-1.7 information note');
+        Storage::disk('local')->put(CaadpEventArchiveSeeder::PROGRAMME_PATH, '%PDF-1.7 programme overview');
+        $this->seed(CaadpEventArchiveSeeder::class);
 
-        $response = $this->get('/en/events/'.FsrpEventPortalSeeder::EVENT_SLUG)
+        $response = $this->get('/en/events/'.CaadpEventArchiveSeeder::EVENT_SLUG)
             ->assertOk()
             ->assertSee('View event gallery')
             ->assertSee('121 photos')
@@ -112,7 +148,10 @@ class PublicSiteTest extends TestCase
         $content = $response->getContent();
 
         $this->assertSame(121, substr_count($content, 'class="event-gallery-card"'));
-        $this->assertSame(121, substr_count($content, ' loading="lazy" decoding="async"'));
+        $this->assertSame(121, preg_match_all(
+            '#<a\s+class="event-gallery-card".*?<img[^>]+loading="lazy" decoding="async"[^>]*>#s',
+            $content,
+        ));
         $this->assertLessThan(
             strpos($content, 'caadp-2026-d01-010.jpg'),
             strpos($content, 'caadp-2026-d01-002.jpg'),
@@ -155,9 +194,9 @@ class PublicSiteTest extends TestCase
     {
         $this->travelTo('2026-09-21 12:00:00');
         Storage::fake('local');
-        Storage::disk('local')->put(FsrpEventPortalSeeder::BRIEF_PATH, '%PDF-1.7 information note');
-        Storage::disk('local')->put(FsrpEventPortalSeeder::PROGRAMME_PATH, '%PDF-1.7 programme overview');
-        $this->seed(FsrpEventPortalSeeder::class);
+        Storage::disk('local')->put(CaadpEventArchiveSeeder::BRIEF_PATH, '%PDF-1.7 information note');
+        Storage::disk('local')->put(CaadpEventArchiveSeeder::PROGRAMME_PATH, '%PDF-1.7 programme overview');
+        $this->seed(CaadpEventArchiveSeeder::class);
         $this->seed(SeedInvestmentSummitSeeder::class);
 
         $summit = Event::query()->where('slug', SeedInvestmentSummitSeeder::EVENT_SLUG)->sole();
@@ -172,6 +211,8 @@ class PublicSiteTest extends TestCase
             ->assertViewHas('resources', fn ($resources): bool => $resources->every(fn ($resource): bool => $resource->relationLoaded('event')))
             ->assertViewHas('newsPosts', fn ($posts): bool => $posts->isEmpty())
             ->assertViewHas('faqs', fn ($faqs): bool => $faqs->isEmpty())
+            ->assertViewHas('speakers', fn (array $speakers): bool => count($speakers) === count(config('seed_summit_speakers'))
+                && array_column($speakers, 'source_order') === array_column(config('seed_summit_speakers'), 'source_order'))
             ->assertSee('/en'.SeedInvestmentSummitSeeder::REGISTRATION_PATH, false)
             ->assertSee('Register now')
             ->assertSee('Palazzo Convention Centre, Ezulwini, Eswatini')
@@ -182,35 +223,63 @@ class PublicSiteTest extends TestCase
         $this->assertMatchesRegularExpression('#<section[^>]+seed-summit-home-hero.*?</section>#s', $content);
         $this->assertSame(1, preg_match('#<section[^>]+seed-summit-home-hero.*?</section>#s', $content, $heroMatches));
         $this->assertSame(1, preg_match('#<header[^>]*>.*?</header>#s', $content, $headerMatches));
+        $this->assertSame(1, preg_match('#<footer[^>]*>.*?</footer>#s', $content, $footerMatches));
 
         $hero = $heroMatches[0];
         $header = $headerMatches[0];
+        $footer = $footerMatches[0];
 
         $this->assertSame(1, substr_count($hero, ' data-slide'));
         $this->assertStringContainsString('Inaugural Seed Investment Summit', $hero);
         $this->assertStringContainsString(SeedInvestmentSummitSeeder::IMAGE_PATH, $hero);
         $this->assertStringNotContainsString('22nd CAADP Partnership Platform', $hero);
-        $this->assertStringNotContainsString('H.E. Moses Vilakati', $hero);
+        $this->assertStringNotContainsString('H.E Moses Vilakati', $hero);
         $this->assertStringNotContainsString('FSRP Events', $header);
         $this->assertStringContainsString('alt="African Union"', $header);
+        $this->assertStringContainsString('African Union Events', $footer);
+        $this->assertStringNotContainsString('FSRP Events', $footer);
+        $this->assertStringNotContainsString('fsrp.africa', $footer);
     }
 
-    public function test_programme_page_shows_update_notice_and_readable_english_punctuation(): void
+    public function test_programme_page_is_scoped_to_the_current_seed_summit(): void
     {
         Storage::fake('local');
-        Storage::disk('local')->put(FsrpEventPortalSeeder::BRIEF_PATH, '%PDF-1.7 information note');
-        Storage::disk('local')->put(FsrpEventPortalSeeder::PROGRAMME_PATH, '%PDF-1.7 programme overview');
-        $this->seed(FsrpEventPortalSeeder::class);
+        Storage::disk('local')->put(CaadpEventArchiveSeeder::BRIEF_PATH, '%PDF-1.7 information note');
+        Storage::disk('local')->put(CaadpEventArchiveSeeder::PROGRAMME_PATH, '%PDF-1.7 programme overview');
+        $this->seed(CaadpEventArchiveSeeder::class);
+        $this->seed(SeedInvestmentSummitSeeder::class);
+
+        $summit = Event::query()->where('slug', SeedInvestmentSummitSeeder::EVENT_SLUG)->sole();
 
         $this->get('/en/program-outline')
             ->assertOk()
+            ->assertViewHas('programmeEvents', fn ($events): bool => $events->modelKeys() === [$summit->id])
             ->assertSee('class="programme-update-notice"', false)
             ->assertSee('Programme updates in progress')
             ->assertSee('Session details and timings may change')
-            ->assertSee('Day 2 · Country readiness & REC delivery')
-            ->assertSee('identify 1–3 priority actions')
-            ->assertDontSee('Â·', false)
-            ->assertDontSee('â€“', false);
+            ->assertSee('Meeting of Senior Officials')
+            ->assertSee('Summit for AU Heads of State and Government')
+            ->assertDontSee('Country readiness & REC delivery')
+            ->assertDontSee('Implementation delivery labs');
+    }
+
+    public function test_resources_page_excludes_documents_from_the_archived_caadp_event(): void
+    {
+        $caadp = Event::query()->where('slug', CaadpEventArchiveSeeder::EVENT_SLUG)->sole();
+
+        $this->assertSame(2, $caadp->resources()->where('is_published', true)->count());
+
+        $this->get('/en/resources')
+            ->assertOk()
+            ->assertViewHas('resources', fn ($resources): bool => $resources->total() === 0)
+            ->assertViewHas('resourceEvents', fn ($events): bool => $events->isEmpty())
+            ->assertDontSee('22nd CAADP Partnership Platform programme overview')
+            ->assertDontSee('22nd CAADP Partnership Platform participant information note');
+
+        $this->get('/en/events/'.CaadpEventArchiveSeeder::EVENT_SLUG)
+            ->assertOk()
+            ->assertSee('22nd CAADP Partnership Platform programme overview')
+            ->assertSee('22nd CAADP Partnership Platform participant information note');
     }
 
     public function test_event_search_matches_arabic_translations(): void
@@ -384,10 +453,11 @@ class PublicSiteTest extends TestCase
     public function test_event_and_news_metadata_escape_html_content(string $modelClass, string $routeName): void
     {
         $this->freezeTime();
-        $item = $modelClass::where('is_published', true)->firstOrFail();
+        $item = $modelClass::firstOrFail();
         $title = '</title><script>alert("title")</script>';
         $description = '"><script>alert("description")</script>';
         $item->fill(['title' => ['en' => $title], 'excerpt' => ['en' => $description]]);
+        $item->is_published = true;
 
         if ($item instanceof NewsPost) {
             $item->published_at = now()->subDay();

@@ -45,7 +45,7 @@ class StoreEventRegistrationRequest extends FormRequest
             'issuing_country' => ['nullable', 'string', Rule::in(config('seed_summit.countries'))],
             'visa_required' => ['nullable', 'boolean'],
             'passport_photo' => [
-                'nullable', 'image', 'mimes:jpg,jpeg,png,webp',
+                'required', 'image', 'mimes:jpg,jpeg,png,webp',
                 'extensions:jpg,jpeg,png,webp', 'max:5120',
             ],
             'passport_scan' => [
@@ -150,6 +150,7 @@ class StoreEventRegistrationRequest extends FormRequest
         return [
             'mobile_number.regex' => 'Enter a valid international mobile number.',
             'alternative_phone.regex' => 'Enter a valid international phone number.',
+            'passport_photo.required' => 'Upload a clear delegate profile photo.',
             'passport_photo.max' => 'The passport photo must not exceed 5 MB.',
             'passport_scan.max' => 'The passport scan must not exceed 10 MB.',
             'other_dietary_needs.required' => 'Describe the other dietary needs.',

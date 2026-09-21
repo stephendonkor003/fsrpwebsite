@@ -67,6 +67,6 @@
             </ol>
         </div>
 
-        <p class="seed-summit-source-note">Summarised from the African Union Inaugural Africa Seed Summit concept note supplied for this event.</p>
+        <p class="seed-summit-source-note">Summarised from the concept note supplied by the African Union for the Inaugural Seed Investment Summit.</p>
     </div>
 </section>

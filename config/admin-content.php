@@ -25,7 +25,7 @@ return [
                 ['name' => 'button_text', 'label' => 'Button label', 'type' => 'text', 'translatable' => true],
                 ['name' => 'button_url', 'label' => 'Button URL', 'type' => 'link', 'help' => 'Use an HTTP(S) URL or a page path such as /events. Local page links follow the visitor language.'],
                 ['name' => 'image', 'label' => 'Background image', 'type' => 'image'],
-                ['name' => 'video_url', 'label' => 'Background video', 'type' => 'video', 'help' => 'An HTTPS video URL, or a managed video path beginning /videos/fsrp/. The background image is used while the video loads.'],
+                ['name' => 'video_url', 'label' => 'Background video', 'type' => 'video', 'help' => 'An HTTPS video URL, or a managed video path beginning /videos/events/. The background image is used while the video loads.'],
                 ['name' => 'sort_order', 'label' => 'Display order', 'type' => 'number', 'default' => 0],
                 ['name' => 'is_active', 'label' => 'Visible on website', 'type' => 'boolean', 'default' => true],
             ],

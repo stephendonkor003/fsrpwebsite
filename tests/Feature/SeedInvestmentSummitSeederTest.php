@@ -3,12 +3,20 @@
 namespace Tests\Feature;
 
 use App\Models\Event;
+use App\Models\Faq;
+use App\Models\NewsPost;
+use App\Models\Page;
+use App\Models\Program;
 use App\Models\Session;
+use App\Models\Setting;
 use App\Models\Slide;
+use Database\Seeders\CaadpEventArchiveSeeder;
 use Database\Seeders\DatabaseSeeder;
 use Database\Seeders\SeedInvestmentSummitSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Storage;
 use PHPUnit\Framework\Attributes\TestWith;
+use RuntimeException;
 use Tests\TestCase;
 
 class SeedInvestmentSummitSeederTest extends TestCase
@@ -86,6 +94,168 @@ class SeedInvestmentSummitSeederTest extends TestCase
         );
     }
 
+    public function test_seed_and_archive_seeders_are_order_independent(): void
+    {
+        $this->prepareCaadpDocuments();
+
+        $this->seed(CaadpEventArchiveSeeder::class);
+        $this->seed(SeedInvestmentSummitSeeder::class);
+
+        $seedEventId = Event::query()->where('slug', SeedInvestmentSummitSeeder::EVENT_SLUG)->sole()->id;
+        $caadpEventId = Event::query()->where('slug', CaadpEventArchiveSeeder::EVENT_SLUG)->sole()->id;
+        $caadpResourceIds = Event::query()->findOrFail($caadpEventId)->resources()->orderBy('sort_order')->pluck('id')->all();
+
+        $this->assertCurrentEventInvariants();
+
+        $this->seed(SeedInvestmentSummitSeeder::class);
+        $this->seed(CaadpEventArchiveSeeder::class);
+
+        $this->assertCurrentEventInvariants();
+        $this->assertSame($seedEventId, Event::query()->where('slug', SeedInvestmentSummitSeeder::EVENT_SLUG)->sole()->id);
+        $this->assertSame($caadpEventId, Event::query()->where('slug', CaadpEventArchiveSeeder::EVENT_SLUG)->sole()->id);
+        $this->assertSame($caadpResourceIds, Event::query()->findOrFail($caadpEventId)->resources()->orderBy('sort_order')->pluck('id')->all());
+    }
+
+    public function test_seeder_retires_known_legacy_content_without_deleting_or_unpublishing_unrelated_content(): void
+    {
+        $legacyProgram = Program::query()->create([
+            'slug' => 'fsrp-regional-food-markets',
+            'title' => ['en' => 'Regional food markets & trade'],
+            'excerpt' => ['en' => 'Legacy excerpt'],
+            'body' => ['en' => 'Legacy body'],
+            'is_published' => true,
+        ]);
+        $customProgram = Program::query()->create([
+            'slug' => 'editorial-programme',
+            'title' => ['en' => 'Editorial programme'],
+            'excerpt' => ['en' => 'Editorial excerpt'],
+            'body' => ['en' => 'Editorial body'],
+            'is_published' => true,
+        ]);
+        $legacyFaq = Faq::query()->create([
+            'category' => ['en' => 'Legacy'],
+            'question' => ['en' => 'What is FSRP Events?'],
+            'answer' => ['en' => 'Legacy answer'],
+            'is_published' => true,
+        ]);
+        $legacyCaadpFaqs = collect([
+            'Who convenes the 22nd CAADP Partnership Platform?',
+            'When and where is the CAADP partner event?',
+            'Where can I download the CAADP programme?',
+            'What interpretation is listed for CAADP?',
+            'How do I confirm participation and travel arrangements?',
+        ])->map(fn (string $question): Faq => Faq::query()->create([
+            'category' => ['en' => 'Legacy CAADP'],
+            'question' => ['en' => $question],
+            'answer' => ['en' => 'Legacy CAADP answer'],
+            'is_published' => true,
+        ]));
+        $customFaq = Faq::query()->create([
+            'category' => ['en' => 'Editorial'],
+            'question' => ['en' => 'Editorial question?'],
+            'answer' => ['en' => 'Editorial answer'],
+            'is_published' => true,
+        ]);
+        $legacyNews = NewsPost::query()->create([
+            'slug' => '22nd-caadp-partnership-platform-participant-information',
+            'title' => ['en' => 'CAADP participant information'],
+            'excerpt' => ['en' => 'Legacy excerpt'],
+            'body' => ['en' => 'Legacy body'],
+            'category' => ['en' => 'Update'],
+            'is_featured' => true,
+            'is_published' => true,
+        ]);
+        $customNews = NewsPost::query()->create([
+            'slug' => 'editorial-update',
+            'title' => ['en' => 'Editorial update'],
+            'excerpt' => ['en' => 'Editorial excerpt'],
+            'body' => ['en' => 'Editorial body'],
+            'category' => ['en' => 'Update'],
+            'is_published' => true,
+        ]);
+        Setting::query()->create(['key' => 'site_name', 'value' => ['en' => 'FSRP Events'], 'group' => 'general']);
+        Setting::query()->create(['key' => 'logo', 'value' => ['value' => '/images/fsrp/african-union-logo.png'], 'group' => 'general']);
+        Setting::query()->create(['key' => 'contact_email', 'value' => ['value' => 'events@example.test'], 'group' => 'contact']);
+        Page::query()->create([
+            'key' => 'about',
+            'eyebrow' => ['en' => 'About FSRP Events'],
+            'title' => ['en' => 'Legacy platform'],
+            'body' => ['en' => 'Legacy FSRP content'],
+            'image' => '/images/fsrp/legacy.jpg',
+            'is_published' => true,
+        ]);
+
+        $this->seed(SeedInvestmentSummitSeeder::class);
+
+        $this->assertFalse($legacyProgram->fresh()->is_published);
+        $this->assertTrue($customProgram->fresh()->is_published);
+        $this->assertFalse($legacyFaq->fresh()->is_published);
+        $this->assertTrue($legacyCaadpFaqs->every(fn (Faq $faq): bool => ! $faq->fresh()->is_published));
+        $this->assertTrue($customFaq->fresh()->is_published);
+        $this->assertFalse($legacyNews->fresh()->is_published);
+        $this->assertFalse($legacyNews->fresh()->is_featured);
+        $this->assertTrue($customNews->fresh()->is_published);
+        $this->assertSame('African Union Events', Setting::query()->where('key', 'site_name')->sole()->value['en']);
+        $this->assertSame('/images/brand/african-union-logo.png', Setting::query()->where('key', 'logo')->sole()->value['value']);
+        $this->assertSame('events@example.test', Setting::query()->where('key', 'contact_email')->sole()->value['value']);
+        $this->assertSame('About African Union Events', Page::query()->where('key', 'about')->sole()->translate('eyebrow', 'en'));
+        $this->assertDatabaseHas('programs', ['id' => $legacyProgram->id]);
+        $this->assertDatabaseHas('faqs', ['id' => $legacyFaq->id]);
+        $legacyCaadpFaqs->each(fn (Faq $faq) => $this->assertDatabaseHas('faqs', ['id' => $faq->id]));
+        $this->assertDatabaseHas('news_posts', ['id' => $legacyNews->id]);
+    }
+
+    public function test_database_seeder_publishes_only_the_two_real_events_with_seed_as_current(): void
+    {
+        $this->prepareCaadpDocuments();
+
+        $this->seed(DatabaseSeeder::class);
+
+        $this->assertSame([
+            SeedInvestmentSummitSeeder::EVENT_SLUG,
+            CaadpEventArchiveSeeder::EVENT_SLUG,
+        ], Event::query()->where('is_published', true)->orderByDesc('start_at')->pluck('slug')->all());
+        $this->assertCurrentEventInvariants();
+        $this->assertSame('African Union Events', Setting::query()->where('key', 'site_name')->sole()->value['en']);
+        $this->assertSame('/images/brand/african-union-logo.png', Setting::query()->where('key', 'logo')->sole()->value['value']);
+        $this->assertSame('', Setting::query()->where('key', 'contact_email')->sole()->value['value']);
+        $this->assertSame('About African Union Events', Page::query()->where('key', 'about')->sole()->translate('eyebrow', 'en'));
+        $this->assertSame(0, Program::query()->where('is_published', true)->count());
+        $this->assertSame(0, Faq::query()->where('is_published', true)->count());
+        $this->assertSame(0, NewsPost::query()->where('is_published', true)->count());
+        $this->assertDatabaseHas('home_sections', [
+            'key' => 'speakers',
+            'is_active' => true,
+            'sort_order' => 4,
+        ]);
+        $this->assertDatabaseHas('home_sections', [
+            'key' => 'programs',
+            'is_active' => false,
+        ]);
+    }
+
+    public function test_database_seeder_preflights_event_assets_before_mutating_existing_data(): void
+    {
+        Storage::fake('local');
+        $setting = Setting::query()->create([
+            'key' => 'site_name',
+            'value' => ['en' => 'Existing platform'],
+            'group' => 'general',
+        ]);
+
+        try {
+            $this->seed(DatabaseSeeder::class);
+            $this->fail('Missing CAADP documents should stop the database seeder before it writes.');
+        } catch (RuntimeException $exception) {
+            $this->assertStringContainsString(CaadpEventArchiveSeeder::BRIEF_PATH, $exception->getMessage());
+        }
+
+        $this->assertSame('Existing platform', $setting->fresh()->value['en']);
+        $this->assertDatabaseCount('settings', 1);
+        $this->assertDatabaseCount('events', 0);
+        $this->assertDatabaseCount('slides', 0);
+    }
+
     #[TestWith(['/events/inaugural-seed-investment-summit/register', 'fr', '/fr/events/inaugural-seed-investment-summit/register', false])]
     #[TestWith(['/en/events/inaugural-seed-investment-summit/register?source=home#form', 'sw', '/sw/events/inaugural-seed-investment-summit/register?source=home#form', false])]
     #[TestWith(['https://events.example.test/register', 'ar', 'https://events.example.test/register', true])]
@@ -119,6 +289,7 @@ class SeedInvestmentSummitSeederTest extends TestCase
     public function test_public_pages_render_localized_internal_ctas_and_external_ctas_safely(): void
     {
         $this->travelTo('2026-09-21 12:00:00');
+        $this->prepareCaadpDocuments();
         $this->seed(DatabaseSeeder::class);
         $this->seed(SeedInvestmentSummitSeeder::class);
 
@@ -168,5 +339,29 @@ class SeedInvestmentSummitSeederTest extends TestCase
                 $response->getContent(),
             );
         }
+    }
+
+    private function assertCurrentEventInvariants(): void
+    {
+        $summit = Event::query()->where('slug', SeedInvestmentSummitSeeder::EVENT_SLUG)->sole();
+        $caadp = Event::query()->where('slug', CaadpEventArchiveSeeder::EVENT_SLUG)->sole();
+
+        $this->assertTrue($summit->is_published);
+        $this->assertTrue($summit->is_featured);
+        $this->assertTrue($caadp->is_published);
+        $this->assertFalse($caadp->is_featured);
+        $this->assertSame(1, Event::query()->where('is_featured', true)->count());
+        $this->assertSame(1, Slide::query()->where('is_active', true)->count());
+        $this->assertSame(
+            SeedInvestmentSummitSeeder::EVENT_PATH,
+            Slide::query()->where('is_active', true)->sole()->button_url,
+        );
+    }
+
+    private function prepareCaadpDocuments(): void
+    {
+        Storage::fake('local');
+        Storage::disk('local')->put(CaadpEventArchiveSeeder::BRIEF_PATH, '%PDF-1.7 information note');
+        Storage::disk('local')->put(CaadpEventArchiveSeeder::PROGRAMME_PATH, '%PDF-1.7 programme overview');
     }
 }

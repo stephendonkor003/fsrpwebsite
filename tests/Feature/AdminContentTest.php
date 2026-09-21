@@ -132,7 +132,7 @@ class AdminContentTest extends TestCase
         $sections = HomeSection::orderBy('sort_order')->get();
         $payload = $sections->values()->map(fn (HomeSection $section, int $index): array => [
             'id' => $section->id,
-            'sort_order' => ($index + 1) * 10,
+            'sort_order' => ($index + 1) * 5,
             'is_active' => $index === 0 ? '0' : '1',
         ])->all();
 

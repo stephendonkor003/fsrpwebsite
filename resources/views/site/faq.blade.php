@@ -8,7 +8,7 @@
         'title' => __('ui.faq.title'),
         'eyebrow' => __('ui.faq.help_eyebrow'),
         'summary' => __('ui.faq.page_summary'),
-        'heroImage' => asset('images/fsrp/field-implementation.jpeg'),
+        'heroImage' => asset('images/seed-investment-summit/seed-investment-summit-2026.jpeg'),
         'heroClass' => 'page-hero-faq',
     ])
 

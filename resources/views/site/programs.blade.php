@@ -1,7 +1,7 @@
 @extends('layouts.site')
 @section('title', __('portal.programme'))
 @section('content')
-    @include('site.partials.page-hero', ['title' => __('portal.programme_title'), 'eyebrow' => __('portal.programme'), 'summary' => __('portal.programme_summary'), 'heroImage' => asset('images/caadp/caadp-partnership-1.jpeg')])
+    @include('site.partials.page-hero', ['title' => __('portal.programme_title'), 'eyebrow' => __('portal.programme'), 'summary' => __('portal.programme_summary'), 'heroImage' => asset('images/seed-investment-summit/seed-investment-summit-2026.jpeg')])
     <aside class="programme-update-band" aria-labelledby="programme-update-title">
         <div class="container">
             <div class="programme-update-notice">
@@ -20,7 +20,6 @@
             <div class="programme-day-list">
                 @foreach($programmeEvent->sessions as $session)
                     <article class="programme-day">
-                        @if($programmeEvent->slug === '22nd-caadp-partnership-platform')<img class="programme-day-image" src="{{ asset('images/caadp/caadp-partnership-'.(($loop->index % 4) + 1).'.jpeg') }}" alt="" loading="lazy">@endif
                         <div class="programme-day-date"><span>{{ $session->is_all_day ? __('portal.day', ['number' => $loop->iteration]) : $session->start_at?->format('H:i') }}</span><strong>{{ $session->start_at?->translatedFormat('d M') }}</strong><small>{{ $session->start_at?->translatedFormat('l') }}</small></div>
                         <div><span class="resource-category">{{ $session->translate('track') ?: __('portal.daily_focus') }}</span><h3>{{ $session->translate('title') }}</h3><p>{{ $session->translate('summary') }}</p>@if($session->translate('speaker_name'))<div class="programme-speaker">@include('site.partials.icon', ['name' => 'people']){{ $session->translate('speaker_name') }} @if($session->translate('speaker_role'))· {{ $session->translate('speaker_role') }}@endif</div>@endif</div>
                         <span class="programme-day-icon">@include('site.partials.icon', ['name' => 'check'])</span>
@@ -33,7 +32,9 @@
         @endforelse
     </div></section>
     @if($resources->isNotEmpty())@include('site.sections.resources')@endif
-    <section class="section programme-themes"><div class="container"><div class="section-heading"><p class="eyebrow"><span></span>{{ __('portal.themes_eyebrow') }}</p><h2>{{ __('portal.themes_title') }}</h2></div>
-        @foreach($programs as $program)<article id="track-{{ $program->slug }}" class="programme-track"><span class="theme-number">0{{ $loop->iteration }}</span><div><h3>{{ $program->translate('title') }}</h3><p>{{ $program->translate('excerpt') }}</p><div class="prose">{!! nl2br(e($program->translate('body'))) !!}</div></div></article>@endforeach
-    </div></section>
+    @if($programs->isNotEmpty())
+        <section class="section programme-themes"><div class="container"><div class="section-heading"><p class="eyebrow"><span></span>{{ __('portal.themes_eyebrow') }}</p><h2>{{ __('portal.themes_title') }}</h2></div>
+            @foreach($programs as $program)<article id="track-{{ $program->slug }}" class="programme-track"><span class="theme-number">0{{ $loop->iteration }}</span><div><h3>{{ $program->translate('title') }}</h3><p>{{ $program->translate('excerpt') }}</p><div class="prose">{!! nl2br(e($program->translate('body'))) !!}</div></div></article>@endforeach
+        </div></section>
+    @endif
 @endsection

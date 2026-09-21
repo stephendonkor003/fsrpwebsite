@@ -1,7 +1,7 @@
 @extends('layouts.site')
 @section('title', __('portal.downloads'))
 @section('content')
-    @include('site.partials.page-hero', ['title' => __('portal.downloads'), 'eyebrow' => __('portal.resources_eyebrow'), 'summary' => __('portal.resources_summary'), 'heroImage' => asset('images/fsrp/water-food-resilience-3.jpg')])
+    @include('site.partials.page-hero', ['title' => __('portal.downloads'), 'eyebrow' => __('portal.resources_eyebrow'), 'summary' => __('portal.resources_summary'), 'heroImage' => asset('images/seed-investment-summit/seed-investment-summit-2026.jpeg')])
     <section class="resource-filter-band"><div class="container"><form class="resource-filters" method="get" action="{{ route('resources.index', $locale) }}">
         <label class="resource-search"><span>{{ __('ui.actions.search') }}</span><div>@include('site.partials.icon', ['name' => 'search'])<input type="search" name="q" value="{{ $search }}" placeholder="{{ __('portal.resource_search') }}" maxlength="500"></div></label>
         <label><span>{{ __('ui.labels.category') }}</span><select name="category"><option value="">{{ __('portal.all_types') }}</option>@foreach($resourceCategories as $key => $label)<option value="{{ $key }}" @selected($category === $key)>{{ __('portal.category.'.$key) }}</option>@endforeach</select></label>

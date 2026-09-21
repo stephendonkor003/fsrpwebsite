@@ -6,9 +6,9 @@
 @section('content')
     @include('site.partials.page-hero', [
         'title' => __('ui.events.title'),
-        'eyebrow' => __('ui.events.calendar_eyebrow'),
-        'summary' => __('ui.events.page_summary'),
-        'heroImage' => asset('images/fsrp/field-implementation.jpeg'),
+        'eyebrow' => __('portal.event_series_eyebrow'),
+        'summary' => __('portal.event_series_summary'),
+        'heroImage' => asset('images/seed-investment-summit/seed-investment-summit-2026.jpeg'),
     ])
 
     <section class="listing-toolbar-wrap">
@@ -50,11 +50,19 @@
             </div>
             <div class="listing-grid event-listing-grid">
                 @forelse($events as $event)
+                    @php
+                        $isPastEvent = $event->end_at?->isPast()
+                            ?? ($event->start_at?->lt(now()->startOfDay()) ?? false);
+                    @endphp
                     <article class="listing-card event-list-card">
                         <a class="listing-image" href="{{ route('events.show', [$locale, $event->slug]) }}">
-                            <img src="{{ $event->image ?: asset(['images/fsrp/field-implementation.jpeg','images/fsrp/water-food-resilience-3.jpg','images/fsrp/field-implementation.jpeg'][$loop->index % 3]) }}" alt="{{ $event->translate('title') }}" loading="lazy" decoding="async">
+                            <img src="{{ $event->image ?: asset('images/seed-investment-summit/seed-investment-summit-2026.jpeg') }}" alt="{{ $event->translate('title') }}" loading="lazy" decoding="async">
                             <span class="event-mode">{{ __('ui.events.modes.'.$event->mode) }}</span>
-                            @if($event->is_featured)<span class="featured-label">{{ __('ui.labels.featured') }}</span>@endif
+                            @if($event->is_featured && ! $isPastEvent)
+                                <span class="featured-label">{{ __('portal.current_event') }}</span>
+                            @elseif($isPastEvent)
+                                <span class="featured-label">{{ __('portal.past_event') }}</span>
+                            @endif
                         </a>
                         <div class="listing-content">
                             <div class="event-date-row"><div class="event-date-block"><strong>{{ $event->start_at?->format('d') }}</strong><span>{{ $event->start_at?->translatedFormat('M Y') }}</span></div><span>{{ $event->end_at?->translatedFormat('d M Y') }}</span></div>

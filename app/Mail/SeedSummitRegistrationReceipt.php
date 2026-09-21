@@ -26,7 +26,7 @@ class SeedSummitRegistrationReceipt extends Mailable
     public function envelope(): Envelope
     {
         return new Envelope(
-            subject: 'Official email confirmed - Registration copy - Inaugural Seed Investment Summit - '
+            subject: 'Registration acknowledgement - Inaugural Seed Investment Summit - '
                 .$this->registration->public_id,
         );
     }

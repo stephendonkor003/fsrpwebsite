@@ -215,21 +215,46 @@ class EventResourcesTest extends TestCase
         $this->assertFalse($session->fresh()->is_published);
     }
 
-    public function test_resource_search_and_filters_exclude_drafts_and_match_translations(): void
+    public function test_resource_search_and_filters_are_scoped_to_the_current_event(): void
     {
-        $event = Event::factory()->create();
-        $match = EventResource::factory()->for($event)->create([
-            'title' => ['en' => 'Event brief', 'fr' => 'Récolte durable'], 'language' => 'fr', 'category' => 'brief',
+        $event = Event::factory()->create([
+            'slug' => (string) config('seed_summit.event_slug'),
+            'is_featured' => true,
         ]);
-        EventResource::factory()->create(['title' => ['fr' => 'Récolte durable'], 'language' => 'en', 'category' => 'brief']);
-        EventResource::factory()->for($event)->create(['title' => ['fr' => 'Récolte durable'], 'language' => 'fr', 'category' => 'brief', 'is_published' => false]);
-        EventResource::factory()->for(Event::factory()->state(['is_published' => false]))->create(['title' => ['fr' => 'Récolte durable'], 'language' => 'fr', 'category' => 'brief']);
+        $match = EventResource::factory()->for($event)->create([
+            'title' => ['en' => 'Event brief', 'fr' => 'Récolte durable'],
+            'language' => 'fr',
+            'category' => 'brief',
+        ]);
+        EventResource::factory()->for($event)->create([
+            'title' => ['fr' => 'Récolte durable'],
+            'language' => 'en',
+            'category' => 'brief',
+        ]);
+        EventResource::factory()->for($event)->create([
+            'title' => ['fr' => 'Récolte durable'],
+            'language' => 'fr',
+            'category' => 'brief',
+            'is_published' => false,
+        ]);
+        EventResource::factory()->for(Event::factory())->create([
+            'title' => ['fr' => 'Récolte durable'],
+            'language' => 'fr',
+            'category' => 'brief',
+        ]);
 
-        $this->get('/fr/resources?'.http_build_query(['q' => 'Récolte', 'category' => 'brief', 'language' => 'fr', 'event' => $event->id]))
+        $this->get('/fr/resources?'.http_build_query([
+            'q' => 'Récolte',
+            'category' => 'brief',
+            'language' => 'fr',
+            'event' => $event->id,
+        ]))
             ->assertViewHas('resources', fn ($resources): bool => $resources->modelKeys() === [$match->id])
             ->assertDontSee($match->file_path);
 
-        $this->get('/en/resources')->assertViewHas('resources', fn ($resources): bool => $resources->total() === 2);
+        $this->get('/en/resources')
+            ->assertViewHas('resources', fn ($resources): bool => $resources->total() === 2)
+            ->assertViewHas('resourceEvents', fn ($events): bool => $events->modelKeys() === [$event->id]);
     }
 
     public function test_array_resource_filters_return_validation_errors(): void
@@ -256,7 +281,7 @@ class EventResourcesTest extends TestCase
 
     #[TestWith(['javascript:alert(1)'])]
     #[TestWith(['data:text/html,test'])]
-    #[TestWith(['/videos/fsrp/../private.mp4'])]
+    #[TestWith(['/videos/events/../private.mp4'])]
     #[TestWith([['invalid']])]
     public function test_unsafe_video_urls_are_rejected(mixed $videoUrl): void
     {
@@ -269,8 +294,8 @@ class EventResourcesTest extends TestCase
         $this->assertDatabaseCount('slides', 0);
     }
 
-    #[TestWith(['https://fsrp.africa/video.mp4'])]
-    #[TestWith(['/videos/fsrp/food-security.mp4'])]
+    #[TestWith(['https://events.example.test/video.mp4'])]
+    #[TestWith(['/videos/events/seed-summit.mp4'])]
     public function test_background_video_urls_can_be_saved(string $videoUrl): void
     {
         $admin = User::factory()->create(['is_admin' => true, 'is_active' => true]);
@@ -306,7 +331,7 @@ class EventResourcesTest extends TestCase
     #[TestWith(['/', '/fr'])]
     #[TestWith(['/en', '/fr'])]
     #[TestWith(['/resources?q=food%20security', '/fr/resources?q=food%20security'])]
-    #[TestWith(['https://fsrp.africa/events', 'https://fsrp.africa/events'])]
+    #[TestWith(['https://events.example.test/events', 'https://events.example.test/events'])]
     #[TestWith(['http://example.test/events', 'http://example.test/events'])]
     public function test_slide_buttons_are_saved_and_follow_the_visitor_language(string $buttonUrl, string $expectedUrl): void
     {

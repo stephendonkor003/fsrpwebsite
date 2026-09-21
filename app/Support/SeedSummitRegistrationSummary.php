@@ -42,7 +42,7 @@ class SeedSummitRegistrationSummary
                     $this->item('Passport Expiry Date', $this->date($registration->passport_expiry_date)),
                     $this->item('Issuing Country', $registration->issuing_country),
                     $this->item('Visa Required', $this->yesNo($registration->visa_required)),
-                    $this->item('Passport Photo', $registration->passport_photo_original_name),
+                    $this->item('Delegate Profile Photo', $registration->passport_photo_original_name),
                     $this->item('Passport Scan', $registration->passport_scan_original_name),
                 ],
             ],

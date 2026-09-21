@@ -4,9 +4,10 @@ REGISTRATION RECEIVED
 
 Thank you for registering.
 
-We received a delegate registration for the {!! $eventTitleText !!} using this official email address.
+This email acknowledges that a delegate registration for the {!! $eventTitleText !!} was submitted using this official email address.
 
-To protect the personal and passport information in the registration, confirm that you control this email address. Once confirmed, we will send a separate confirmation email with the complete registration PDF attached.
+STEP 1 OF 2 - EMAIL VERIFICATION
+To protect the personal, identity and travel information in the registration, confirm that you control this address. After confirmation, we will send a separate registration acknowledgement with the professionally designed PDF copy attached.
 
 Registration reference: {!! $registrationReferenceText !!}
 Date: {!! $eventDateText !!}
@@ -14,12 +15,14 @@ Venue: {!! $eventVenueText !!}
 
 Confirm official email: {!! $verificationUrl !!}
 
-This secure confirmation link expires in 7 days.
+This secure confirmation link expires in {{ $verificationExpiryDays }} {{ $verificationExpiryDays === 1 ? 'day' : 'days' }}.
 
-Important: This acknowledges receipt of the registration; it does not by itself confirm accreditation, travel, visa, or accommodation arrangements.
+Important: This confirms receipt of a submission only. It does not confirm accreditation, travel, visa, accommodation or programme arrangements.
+
+If you did not submit this registration, do not use the confirmation link. No further action is required.
 
 OFFICE OF THE COMMISSIONER - ARBE
 African Union Commission
 Inaugural Seed Investment Summit
 
-This is an automated service message. Please do not forward the confirmation link.
+This is an automated service message. For your security, please do not forward the confirmation link.

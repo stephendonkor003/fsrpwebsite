@@ -107,7 +107,7 @@
                 <div class="seed-confirmation-mark" aria-hidden="true">@include('site.partials.icon', ['name' => 'check'])</div>
                 <p class="seed-event-kicker"><span></span>Registration received</p>
                 <h1 id="confirmation-title">Thank you, {{ $delegateName }}.</h1>
-                <p>Your delegate registration for the {{ $eventTitle }} has been saved. Review the full summary now and keep the PDF for your records.</p>
+                <p>Your delegate registration for the {{ $eventTitle }} has been saved. Review the full summary now and keep the PDF for your records. Confirm the official email address to receive the acknowledgement and attached PDF.</p>
 
                 @if($registrationReference)
                     <p class="seed-reference"><span>Registration reference</span><strong>{{ $registrationReference }}</strong></p>
@@ -124,13 +124,13 @@
                         @if($emailMessage)
                             {{ $emailMessage }}
                         @elseif(in_array($emailState, ['sent', 'delivered'], true))
-                            A confirmation email has been sent to the official email address.
+                            A secure verification email has been sent to the official email address. Confirm it to receive the acknowledgement PDF.
                         @elseif($emailState === 'queued')
-                            Your confirmation email is queued for delivery to the official email address.
+                            Your secure verification email is queued for delivery to the official email address.
                         @elseif(in_array($emailState, ['failed', 'error'], true))
-                            Your registration is saved, but email delivery is still pending. Please download the PDF below.
+                            Your registration is saved, but the verification email is still pending. You can download the PDF below and retry delivery.
                         @else
-                            Your acknowledgement is being prepared for the official email address.
+                            Your secure verification email is being prepared for the official email address.
                         @endif
                     </p>
                 </div>
@@ -154,7 +154,7 @@
                     <div><dt>Theme</dt><dd>{{ $eventTheme }}</dd></div>
                 </dl>
 
-                <a class="seed-confirmation-home" href="{{ route('home', $resolvedLocale) }}">Return to the FSRP website <span aria-hidden="true">→</span></a>
+                <a class="seed-confirmation-home" href="{{ route('home', $resolvedLocale) }}">Return to African Union Events <span aria-hidden="true">→</span></a>
             </div>
         </section>
 

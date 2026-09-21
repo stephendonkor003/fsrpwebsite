@@ -3,16 +3,16 @@
 return [
     'pages' => [
         'home' => [
-            'title' => 'Food System Resilience Events & Programmes',
-            'description' => 'Discover FSRP events, learning exchanges and partner meetings open to participants across Africa. Explore food system resilience programmes and resources.',
+            'title' => 'African Union Events & Programmes',
+            'description' => 'Explore the African Union event series, led by the Inaugural Seed Investment Summit, with programmes, speakers and participant resources.',
         ],
         'events' => [
             'title' => 'Event Calendar & Participation',
-            'description' => 'Find upcoming FSRP and partner events, check dates and participation details, and explore meetings advancing food system resilience across Africa.',
+            'description' => 'Find current, upcoming and archived African Union events, with dates, participation details, programmes and event resources.',
         ],
         'programmes' => [
             'title' => 'Event Programmes & Daily Sessions',
-            'description' => 'Explore daily event programmes, planned sessions and themes. Prepare for FSRP and partner discussions and download available programme outlines.',
+            'description' => 'Explore the current Seed Summit programme and confirmed sessions, then download the available event documents.',
         ],
         'speakers' => [
             'title' => 'Featured Speakers & Leaders',
@@ -20,22 +20,22 @@ return [
         ],
         'resources' => [
             'title' => 'Event Resources & Programme Downloads',
-            'description' => 'Download available FSRP event programmes, information briefs, presentations and reports. Search resources by event, document type and language.',
+            'description' => 'Download African Union event programmes, information briefs, presentations and reports. Search resources by event, document type and language.',
         ],
         'news' => [
             'title' => 'Event News & Partner Updates',
-            'description' => 'Read the latest FSRP event news, partner updates and participant information. Follow the conversations shaping resilient food systems across Africa.',
+            'description' => 'Read African Union event news, partner updates and participant information from the current programme and wider event series.',
         ],
         'about' => [
-            'title' => 'About the FSRP Event Portal',
-            'description' => 'Learn how FSRP Events connects participants across all African countries through meetings, shared learning and partnerships for resilient food systems.',
+            'title' => 'About African Union Events',
+            'description' => 'Learn how African Union Events connects participants through a continuing series of continental meetings, programmes and shared resources.',
         ],
         'faq' => [
             'title' => 'Event Participation & Programme FAQs',
-            'description' => 'Find answers about FSRP events, partner meetings, participation and programme downloads. Get the practical information you need before joining an event.',
+            'description' => 'Find answers about African Union events, participation, programmes and downloads. Get practical information before joining an event.',
         ],
     ],
-    'image_alt' => 'Irrigation pump beside green crop fields, supporting food production and resilience.',
+    'image_alt' => 'Official artwork for the Inaugural Seed Investment Summit.',
     'page_number' => 'Page :number',
-    'editorial_team' => 'FSRP Events editorial team',
+    'editorial_team' => 'African Union Events editorial team',
 ];

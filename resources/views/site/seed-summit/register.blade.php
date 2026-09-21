@@ -69,7 +69,7 @@
         'passport_expiry_date' => 'Passport Expiry Date',
         'issuing_country' => 'Issuing Country',
         'visa_required' => 'Visa Required',
-        'passport_photo' => 'Passport Photo',
+        'passport_photo' => 'Delegate Profile Photo',
         'passport_scan' => 'Passport Scan',
         'organisation' => 'Organisation',
         'member_state' => 'Member State',
@@ -329,9 +329,9 @@
                                 </div>
 
                                 <div class="seed-field seed-upload-field">
-                                    <label for="field-passport-photo">Passport Photo</label>
-                                    <input id="field-passport-photo" name="passport_photo" type="file" accept="image/jpeg,image/png,image/webp" aria-describedby="help-passport-photo @error('passport_photo') error-passport-photo @enderror" @error('passport_photo') aria-invalid="true" @enderror>
-                                    <p class="seed-field-help" id="help-passport-photo">Upload a clear JPEG, PNG or WebP image, up to 5 MB.</p>
+                                    <label for="field-passport-photo">Delegate Profile Photo <span class="seed-required" aria-hidden="true">*</span><span class="sr-only"> (required)</span></label>
+                                    <input id="field-passport-photo" name="passport_photo" type="file" accept="image/jpeg,image/png,image/webp" required aria-describedby="help-passport-photo @error('passport_photo') error-passport-photo @enderror" @error('passport_photo') aria-invalid="true" @enderror>
+                                    <p class="seed-field-help" id="help-passport-photo">Required. Upload a clear, front-facing JPEG, PNG or WebP image, up to 5 MB. It will appear on the registration PDF.</p>
                                     @error('passport_photo')<p class="seed-field-error" id="error-passport-photo">{{ $message }}</p>@enderror
                                 </div>
 
@@ -504,7 +504,7 @@
 
                             <div class="seed-submit-note">
                                 <strong>What happens next?</strong>
-                                <p>After submission, you will see a registration summary with a PDF download. An acknowledgement will also be sent to the official email address.</p>
+                                <p>After submission, you will see a registration summary with a PDF download. We will send a secure verification message to the official email address, followed by the registration acknowledgement and attached PDF once that address is confirmed.</p>
                             </div>
 
                             <div class="seed-step-actions"><button class="seed-button seed-button-secondary" type="button" data-step-previous><span aria-hidden="true">←</span> Back</button><button class="seed-button seed-button-submit" type="submit">Submit registration @include('site.partials.icon', ['name' => 'check'])</button></div>

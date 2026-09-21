@@ -5,15 +5,17 @@
     @php
         $isCaadpEvent = $event->slug === '22nd-caadp-partnership-platform';
         $isSeedSummitEvent = $event->slug === config('seed_summit.event_slug');
-        $registrationUrl = $event->registrationUrlForLocale($locale);
-        $registrationIsExternal = $event->registrationUrlOpensExternally();
+        $isPastEvent = $event->end_at?->isPast()
+            ?? ($event->start_at?->lt(now()->startOfDay()) ?? false);
+        $registrationUrl = $isPastEvent ? null : $event->registrationUrlForLocale($locale);
+        $registrationIsExternal = $registrationUrl ? $event->registrationUrlOpensExternally() : false;
     @endphp
     <section class="detail-hero">
-        <img src="{{ $event->image ?: asset('images/fsrp/field-implementation.jpeg') }}" alt="">
+        <img src="{{ $event->image ?: asset('images/seed-investment-summit/seed-investment-summit-2026.jpeg') }}" alt="">
         <div class="page-hero-overlay"></div>
         <div class="container detail-hero-inner">
             <nav class="breadcrumbs" aria-label="{{ __('ui.common.breadcrumbs') }}"><a href="{{ route('home', $locale) }}">{{ __('ui.nav.home') }}</a><span>/</span><a href="{{ route('events.index', $locale) }}">{{ __('ui.nav.events') }}</a></nav>
-            <div class="detail-badges"><span class="tag tag-gold">{{ __('ui.events.modes.'.$event->mode) }}</span>@if($event->slug === '22nd-caadp-partnership-platform')<span class="tag tag-outline">{{ __('portal.partner_event') }} · CAADP</span>@endif</div>
+            <div class="detail-badges"><span class="tag tag-gold">{{ __('ui.events.modes.'.$event->mode) }}</span>@if($isCaadpEvent)<span class="tag tag-outline">{{ __('portal.partner_event') }} · CAADP</span>@endif @if($isPastEvent)<span class="tag tag-outline">{{ __('portal.past_event') }}</span>@elseif($isSeedSummitEvent)<span class="tag tag-outline">{{ __('portal.current_event') }}</span>@endif</div>
             <h1>{{ $event->translate('title') }}</h1><p>{{ $event->translate('excerpt') }}</p>
             <div class="hero-actions">
                 @if($programmeFile = $resources->firstWhere('category', 'programme'))
@@ -38,14 +40,24 @@
     <section class="section detail-body-section"><div class="container event-detail-layout">
         <article class="detail-article"><p class="eyebrow"><span></span>{{ __('ui.events.about_event') }}</p><h2>{{ __('ui.events.what_to_expect') }}</h2><div class="prose event-description">{!! nl2br(e($event->translate('body'))) !!}</div></article>
         <aside class="event-participation">
-            <span class="step-icon">@include('site.partials.icon', ['name' => 'people'])</span><h3>{{ $registrationUrl ? __('ui.actions.register_now') : __('portal.registration_pending') }}</h3>
-            @if($registrationUrl)<a class="button button-dark" href="{{ $registrationUrl }}" @if($registrationIsExternal) target="_blank" rel="noopener" @endif>{{ __('ui.actions.register_now') }} @include('site.partials.icon', ['name' => $registrationIsExternal ? 'external' : 'arrow'])</a>@else<p>{{ __('portal.registration_pending_text') }}</p>@endif
+            <span class="step-icon">@include('site.partials.icon', ['name' => $isPastEvent ? 'check' : 'people'])</span>
+            @if($isPastEvent)
+                <h3>{{ __('portal.event_concluded') }}</h3>
+                <p>{{ __('portal.event_concluded_text') }}</p>
+            @elseif($registrationUrl)
+                <h3>{{ __('ui.actions.register_now') }}</h3>
+                <a class="button button-dark" href="{{ $registrationUrl }}" @if($registrationIsExternal) target="_blank" rel="noopener" @endif>{{ __('ui.actions.register_now') }} @include('site.partials.icon', ['name' => $registrationIsExternal ? 'external' : 'arrow'])</a>
+            @else
+                <h3>{{ __('portal.registration_pending') }}</h3>
+                <p>{{ __('portal.registration_pending_text') }}</p>
+            @endif
             @if($resources->isNotEmpty())<a class="text-link" href="#event-documents">{{ __('portal.event_resources') }} @include('site.partials.icon', ['name' => 'download'])</a>@endif
             <div class="event-share"><span>{{ __('ui.actions.share') }}</span><button type="button" data-copy-link data-success-label="{{ __('portal.copy_success') }}" data-prompt-label="{{ __('portal.copy_prompt') }}">{{ __('ui.common.copy_link') }}</button></div>
         </aside>
     </div></section>
     @if($isCaadpEvent)
         @include('site.events.partials.caadp-participant-information')
+        @include('site.events.partials.caadp-speakers')
     @endif
     @if($isSeedSummitEvent)
         @include('site.events.partials.seed-summit-information')

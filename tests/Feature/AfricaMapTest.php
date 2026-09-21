@@ -95,7 +95,7 @@ class AfricaMapTest extends TestCase
     #[TestWith(['/en/about'])]
     public function test_the_home_and_about_pages_include_the_map_and_all_africa_coverage(string $path): void
     {
-        HomeSection::create(['key' => 'about', 'label' => 'About FSRP', 'is_active' => true, 'sort_order' => 1]);
+        HomeSection::create(['key' => 'about', 'label' => 'About African Union Events', 'is_active' => true, 'sort_order' => 1]);
 
         $response = $this->get($path)->assertOk()
             ->assertSeeText('Open to participants across all African countries');

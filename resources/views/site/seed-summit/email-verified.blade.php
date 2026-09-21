@@ -17,20 +17,20 @@
                 @elseif($verificationCompleted && $alreadyVerified)
                     <h1 id="verification-title">Official email already confirmed.</h1>
                     @if($receiptEmailStatus === \App\Models\EventRegistration::EMAIL_SENT)
-                        <p>Your registration confirmation and complete PDF have already been sent to the verified email address.</p>
+                        <p>Your registration acknowledgement and complete PDF have already been sent to the verified email address.</p>
                     @elseif($receiptEmailStatus === \App\Models\EventRegistration::EMAIL_FAILED)
                         <p>Your email is verified, but delivery of the registration PDF is delayed. Please select the confirmation link again to retry.</p>
                     @else
-                        <p>Your email is verified and the confirmation email with your complete registration PDF is being prepared.</p>
+                        <p>Your email is verified and the registration acknowledgement with your complete registration PDF is being prepared.</p>
                     @endif
                 @elseif($verificationCompleted)
                     <h1 id="verification-title">Official email confirmed.</h1>
                     @if($receiptEmailStatus === \App\Models\EventRegistration::EMAIL_SENT)
-                        <p>Thank you. Your registration confirmation and complete PDF have been sent to the verified email address.</p>
+                        <p>Thank you. Your registration acknowledgement and complete PDF have been sent to the verified email address.</p>
                     @elseif($receiptEmailStatus === \App\Models\EventRegistration::EMAIL_FAILED)
                         <p>Your email is verified, but delivery of the registration PDF is delayed. Please select the confirmation link again to retry.</p>
                     @else
-                        <p>Thank you. A confirmation email with your complete registration PDF is now being prepared for the verified address.</p>
+                        <p>Thank you. A registration acknowledgement with your complete registration PDF is now being prepared for the verified address.</p>
                     @endif
                 @elseif($alreadyVerified)
                     <h1 id="verification-title">Official email already confirmed.</h1>

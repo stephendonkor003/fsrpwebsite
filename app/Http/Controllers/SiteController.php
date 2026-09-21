@@ -10,7 +10,6 @@ use App\Models\HomeSection;
 use App\Models\NewsPost;
 use App\Models\Page;
 use App\Models\Program;
-use App\Models\Session;
 use App\Models\Setting;
 use App\Models\Slide;
 use Illuminate\Database\Eloquent\Builder;
@@ -25,16 +24,10 @@ class SiteController extends Controller
     public function home(): View
     {
         $seedSummitSlug = (string) config('seed_summit.event_slug');
-        $featuredEvent = Event::query()
-            ->where('slug', $seedSummitSlug)
-            ->where('is_published', true)
-            ->where('is_featured', true)
-            ->currentOrUpcoming()
-            ->with([
-                'resources' => fn (HasMany $query) => $query->with('event')->published()->orderBy('sort_order'),
-                'sessions' => fn (HasMany $query) => $query->with('event')->published()->orderBy('start_at')->orderBy('sort_order'),
-            ])
-            ->first();
+        $featuredEvent = $this->currentEvent([
+            'resources' => fn (HasMany $query) => $query->with('event')->published()->orderBy('sort_order'),
+            'sessions' => fn (HasMany $query) => $query->with('event')->published()->orderBy('start_at')->orderBy('sort_order'),
+        ]);
 
         $slides = $featuredEvent === null
             ? collect()
@@ -46,12 +39,12 @@ class SiteController extends Controller
 
         return view('site.home', array_merge($this->shared(), [
             'slides' => $slides,
-            'speakers' => [],
+            'speakers' => $this->speakerProfiles(),
             'featuredEvent' => $featuredEvent,
             'resources' => $featuredEvent?->resources->take(3) ?? collect(),
             'sessions' => $featuredEvent?->sessions->take(6) ?? collect(),
             'events' => new EloquentCollection($featuredEvent === null ? [] : [$featuredEvent]),
-            'programs' => Program::where('is_published', true)->orderBy('sort_order')->get(),
+            'programs' => collect(),
             'newsPosts' => collect(),
             'faqs' => collect(),
             'homeSections' => HomeSection::where('is_active', true)->orderBy('sort_order')->get(),
@@ -141,16 +134,16 @@ class SiteController extends Controller
 
     public function programs(): View
     {
+        $currentEvent = $this->currentEvent([
+            'sessions' => fn (HasMany $query) => $query->published()->orderBy('start_at')->orderBy('sort_order'),
+            'resources' => fn (HasMany $query) => $query->with('event')->published()->orderBy('sort_order'),
+        ]);
+
         return view('site.programs', array_merge($this->shared(), [
-            'programmeEvents' => Event::where('is_published', true)
-                ->whereHas('sessions', fn (Builder $query) => $query->published())
-                ->with([
-                    'sessions' => fn (HasMany $query) => $query->published()->orderBy('start_at')->orderBy('sort_order'),
-                    'resources' => fn (HasMany $query) => $query->published()->orderBy('sort_order'),
-                ])->orderByDesc('start_at')->get(),
-            'programs' => Program::where('is_published', true)->orderBy('sort_order')->get(),
-            'sessions' => Session::with('event')->published()->where('start_at', '>=', now()->startOfDay())->orderBy('start_at')->limit(8)->get(),
-            'resources' => EventResource::with('event')->published()->where('category', 'programme')->orderBy('sort_order')->orderByDesc('created_at')->get(),
+            'programmeEvents' => new EloquentCollection($currentEvent === null ? [] : [$currentEvent]),
+            'programs' => collect(),
+            'sessions' => $currentEvent?->sessions ?? collect(),
+            'resources' => $currentEvent?->resources->where('category', 'programme')->values() ?? collect(),
         ]));
     }
 
@@ -166,7 +159,9 @@ class SiteController extends Controller
         $category = $validated['category'] ?? '';
         $language = $validated['language'] ?? '';
         $eventId = $validated['event'] ?? '';
+        $currentEvent = $this->currentEvent();
         $resources = EventResource::with('event')->published()
+            ->where('event_id', $currentEvent?->getKey() ?? 0)
             ->when($search !== '', fn (Builder $query) => $this->searchTranslations($query, ['title', 'description'], $search))
             ->when($category !== '', fn (Builder $query) => $query->where('category', $category))
             ->when($language !== '', fn (Builder $query) => $query->where('language', $language))
@@ -174,7 +169,10 @@ class SiteController extends Controller
             ->orderBy('sort_order')->orderByDesc('created_at')->paginate(12)->withQueryString();
 
         return view('site.resources', array_merge($this->shared(), compact('resources', 'search', 'category', 'language', 'eventId'), [
-            'resourceEvents' => Event::where('is_published', true)->whereHas('resources', fn (Builder $query) => $query->published())->orderByDesc('start_at')->get(),
+            'resourceEvents' => Event::query()
+                ->whereKey($currentEvent?->getKey() ?? 0)
+                ->whereHas('resources', fn (Builder $query) => $query->published())
+                ->get(),
             'resourceCategories' => EventResource::CATEGORIES,
         ]));
     }
@@ -225,16 +223,39 @@ class SiteController extends Controller
     }
 
     /**
-     * @return array<int, array{name: string, title: string, organisation: string, image: string}>
+     * @param  array<string, mixed>  $relations
+     */
+    private function currentEvent(array $relations = []): ?Event
+    {
+        $query = Event::query()
+            ->where('slug', (string) config('seed_summit.event_slug'))
+            ->where('is_published', true)
+            ->where('is_featured', true)
+            ->currentOrUpcoming();
+
+        if ($relations !== []) {
+            $query->with($relations);
+        }
+
+        return $query->first();
+    }
+
+    /**
+     * @return array<int, array{source_order: int, name: string, title: string, organisation: string, image: string}>
      */
     private function speakerProfiles(): array
     {
-        return [
-            ['name' => 'H.E. Moses Vilakati', 'title' => 'Commissioner, Agriculture, Rural Development, Blue Economy and Sustainable Environment (ARBE)', 'organisation' => 'African Union Commission', 'image' => 'images/speakers/moses-vilakati.png'],
-            ['name' => 'Nardos Bekele-Thomas', 'title' => 'CEO of AUDA-NEPAD', 'organisation' => 'African Union Development Agency – NEPAD', 'image' => 'images/speakers/nardos-bekele-thomas.png'],
-            ['name' => 'Dr. Anxious Jongwe Masuka', 'title' => 'Minister for Agriculture, Mechanization and Water Resources Development', 'organisation' => 'Zimbabwe', 'image' => 'images/speakers/anxious-jongwe-masuka.png'],
-            ['name' => 'Elias Mpedi Magosi', 'title' => 'Executive Secretary', 'organisation' => 'SADC Secretariat', 'image' => 'images/speakers/elias-mpedi-magosi.png'],
-            ['name' => 'Gabriel Mbairobe', 'title' => 'Minister of Agriculture and Rural Development, Cameroon, and Chairperson of the African Union Specialized Technical Committee on Agriculture, Rural Development, Water and Environment (STC-ARBE)', 'organisation' => 'Cameroon', 'image' => 'images/speakers/gabriel-mbairobe.png'],
-        ];
+        $profiles = config('seed_summit_speakers', []);
+
+        if (! is_array($profiles)) {
+            return [];
+        }
+
+        return collect($profiles)
+            ->filter(fn (mixed $profile): bool => is_array($profile)
+                && isset($profile['source_order'], $profile['name'], $profile['title'], $profile['organisation'], $profile['image']))
+            ->sortBy('source_order')
+            ->values()
+            ->all();
     }
 }

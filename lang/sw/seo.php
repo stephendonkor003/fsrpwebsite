@@ -3,16 +3,16 @@
 return [
     'pages' => [
         'home' => [
-            'title' => 'Matukio na Ratiba za Ustahimilivu wa Mifumo ya Chakula',
-            'description' => 'Gundua matukio ya FSRP na mikutano ya washirika iliyo wazi kwa washiriki kutoka nchi zote za Afrika. Angalia ratiba na nyenzo zilizopo.',
+            'title' => 'Matukio na Programu za Umoja wa Afrika',
+            'description' => 'Gundua mfululizo wa African Union Events unaoongozwa na Mkutano wa kwanza wa uwekezaji katika mbegu, pamoja na ratiba, wazungumzaji na nyenzo.',
         ],
         'events' => [
             'title' => 'Kalenda ya Matukio na Ushiriki',
-            'description' => 'Tafuta matukio yajayo ya FSRP na washirika wake. Angalia tarehe na maelezo ya ushiriki kwa washiriki kutoka kote Afrika.',
+            'description' => 'Tafuta matukio ya sasa, yajayo na yaliyohifadhiwa ya Umoja wa Afrika, pamoja na tarehe, ushiriki, ratiba na nyenzo.',
         ],
         'programmes' => [
             'title' => 'Ratiba za Matukio na Vikao vya Kila Siku',
-            'description' => 'Chunguza ratiba za kila siku, vikao na mada zilizopangwa. Jiandae kwa majadiliano ya FSRP na washirika wake na upakue mihtasari ya ratiba iliyopo.',
+            'description' => 'Chunguza ratiba ya sasa ya Mkutano wa uwekezaji katika mbegu, vikao vilivyothibitishwa na nyaraka zinazopatikana.',
         ],
         'speakers' => [
             'title' => 'Wazungumzaji na viongozi mashuhuri',
@@ -20,22 +20,22 @@ return [
         ],
         'resources' => [
             'title' => 'Nyenzo za Matukio na Ratiba za Kupakua',
-            'description' => 'Pakua ratiba, muhtasari wa taarifa, mawasilisho na ripoti za matukio ya FSRP. Tafuta nyaraka zilizopo kulingana na tukio, aina ya hati na lugha yake.',
+            'description' => 'Pakua ratiba, muhtasari wa taarifa, mawasilisho na ripoti za matukio ya Umoja wa Afrika. Tafuta kwa tukio, aina ya hati na lugha.',
         ],
         'news' => [
             'title' => 'Habari za Matukio na Taarifa za Washirika',
-            'description' => 'Soma habari za matukio ya FSRP, taarifa za washirika na maelezo kwa washiriki. Fuatilia majadiliano yanayounganisha washiriki kutoka kote Afrika.',
+            'description' => 'Soma habari za African Union Events, taarifa za washirika na maelezo kwa washiriki wa programu ya sasa na mfululizo wa matukio.',
         ],
         'about' => [
-            'title' => 'Kuhusu Tovuti ya Matukio ya FSRP',
-            'description' => 'Fahamu jinsi tovuti ya matukio ya FSRP inavyounganisha watu, maarifa na washirika kutoka nchi zote za Afrika kuhusu ustahimilivu wa mifumo ya chakula.',
+            'title' => 'Kuhusu African Union Events',
+            'description' => 'Fahamu jinsi African Union Events inavyounganisha washiriki kupitia mfululizo endelevu wa mikutano, programu na nyenzo za bara.',
         ],
         'faq' => [
             'title' => 'Maswali kuhusu Ushiriki na Ratiba',
-            'description' => 'Pata majibu kuhusu matukio ya FSRP, mikutano ya washirika, ushiriki na upakuaji wa ratiba. Soma taarifa muhimu za maandalizi kabla ya kushiriki katika tukio.',
+            'description' => 'Pata majibu kuhusu matukio ya Umoja wa Afrika, ushiriki, programu na vipakuliwa kabla ya kushiriki katika tukio.',
         ],
     ],
-    'image_alt' => 'Pampu ya umwagiliaji kando ya mashamba ya kijani, ikisaidia uzalishaji wa chakula na ustahimilivu.',
+    'image_alt' => 'Mchoro rasmi wa Mkutano wa kwanza wa uwekezaji katika mbegu wa Umoja wa Afrika.',
     'page_number' => 'Ukurasa wa :number',
-    'editorial_team' => 'Timu ya uhariri ya Matukio ya FSRP',
+    'editorial_team' => 'Timu ya uhariri ya African Union Events',
 ];

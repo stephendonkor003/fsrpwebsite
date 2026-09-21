@@ -3,39 +3,39 @@
 return [
     'pages' => [
         'home' => [
-            'title' => 'Food System Resilience Events & Programmes',
-            'description' => 'Discover FSRP events, learning exchanges and partner meetings open to participants across Africa. Explore food system resilience programmes and resources.',
+            'title' => 'فعاليات وبرامج الاتحاد الأفريقي',
+            'description' => 'استكشف سلسلة فعاليات الاتحاد الأفريقي، وفي مقدمتها قمة الاستثمار في البذور الافتتاحية، مع البرامج والمتحدثين وموارد المشاركين.',
         ],
         'events' => [
-            'title' => 'Event Calendar & Participation',
-            'description' => 'Find upcoming FSRP and partner events, check dates and participation details, and explore meetings advancing food system resilience across Africa.',
+            'title' => 'تقويم الفعاليات والمشاركة',
+            'description' => 'تعرّف على فعاليات الاتحاد الأفريقي الحالية والقادمة والمؤرشفة، مع التواريخ وتفاصيل المشاركة والبرامج والموارد.',
         ],
         'programmes' => [
-            'title' => 'Event Programmes & Daily Sessions',
-            'description' => 'Explore daily event programmes, planned sessions and themes. Prepare for FSRP and partner discussions and download available programme outlines.',
+            'title' => 'برامج الفعاليات والجلسات اليومية',
+            'description' => 'استكشف برنامج قمة الاستثمار في البذور الحالية والجلسات المؤكدة، ونزّل وثائق الفعالية المتاحة.',
         ],
         'speakers' => [
             'title' => 'المتحدثون والقادة البارزون',
             'description' => 'تعرّفوا على القادة والمتحدثين الذين يقودون الحوار حول التحول الزراعي والتنمية الريفية والنظم الغذائية القادرة على الصمود في أفريقيا.',
         ],
         'resources' => [
-            'title' => 'Event Resources & Programme Downloads',
-            'description' => 'Download available FSRP event programmes, information briefs, presentations and reports. Search resources by event, document type and language.',
+            'title' => 'موارد الفعاليات وتنزيل البرامج',
+            'description' => 'نزّل برامج فعاليات الاتحاد الأفريقي والمذكرات الإعلامية والعروض والتقارير، وابحث حسب الفعالية ونوع الوثيقة واللغة.',
         ],
         'news' => [
-            'title' => 'Event News & Partner Updates',
-            'description' => 'Read the latest FSRP event news, partner updates and participant information. Follow the conversations shaping resilient food systems across Africa.',
+            'title' => 'أخبار الفعاليات وتحديثات الشركاء',
+            'description' => 'اقرأ أخبار African Union Events وتحديثات الشركاء ومعلومات المشاركين من البرنامج الحالي وسلسلة الفعاليات الأوسع.',
         ],
         'about' => [
-            'title' => 'About the FSRP Event Portal',
-            'description' => 'Learn how FSRP Events connects participants across all African countries through meetings, shared learning and partnerships for resilient food systems.',
+            'title' => 'حول African Union Events',
+            'description' => 'تعرّف على كيفية ربط African Union Events المشاركين من خلال سلسلة مستمرة من الاجتماعات والبرامج والموارد القارية.',
         ],
         'faq' => [
-            'title' => 'Event Participation & Programme FAQs',
-            'description' => 'Find answers about FSRP events, partner meetings, participation and programme downloads. Get the practical information you need before joining an event.',
+            'title' => 'أسئلة المشاركة وبرامج الفعاليات',
+            'description' => 'اعثر على إجابات حول فعاليات الاتحاد الأفريقي والمشاركة والبرامج والتنزيلات قبل الانضمام إلى فعالية.',
         ],
     ],
-    'image_alt' => 'Irrigation pump beside green crop fields, supporting food production and resilience.',
+    'image_alt' => 'العمل الفني الرسمي لقمة الاستثمار في البذور الافتتاحية التابعة للاتحاد الأفريقي.',
     'page_number' => 'Page :number',
-    'editorial_team' => 'FSRP Events editorial team',
+    'editorial_team' => 'فريق تحرير African Union Events',
 ];

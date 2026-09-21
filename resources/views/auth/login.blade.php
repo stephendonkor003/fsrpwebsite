@@ -5,17 +5,17 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <meta name="theme-color" content="#172f2a">
-    <title>Administrator sign in · FSRP Events</title>
+    <title>Administrator sign in · African Union Events</title>
     <link rel="stylesheet" href="{{ asset('assets/admin.css') }}">
 </head>
 <body class="login-page">
     <main class="login-shell">
         <section class="login-visual" aria-labelledby="login-welcome-title">
             <div class="login-visual-pattern" aria-hidden="true"></div>
-            <a class="login-brand" href="{{ route('home', ['locale' => config('locales.default', 'en')]) }}" aria-label="Visit the FSRP Events website">
-                <img class="admin-brand-logo" src="{{ asset('images/fsrp/african-union-logo.png') }}" alt="African Union" width="56" height="56">
+            <a class="login-brand" href="{{ route('home', ['locale' => config('locales.default', 'en')]) }}" aria-label="Visit the African Union Events website">
+                <img class="admin-brand-logo" src="{{ asset('images/brand/african-union-logo.png') }}" alt="African Union" width="56" height="56">
                 <span>
-                    <strong>FSRP Events</strong>
+                    <strong>African Union Events</strong>
                     <small>Events &amp; Programmes</small>
                 </span>
             </a>
@@ -32,8 +32,8 @@
         <section class="login-panel" aria-labelledby="login-title">
             <div class="login-form-wrap">
                 <div class="login-mobile-brand" aria-hidden="true">
-                    <img class="admin-brand-logo" src="{{ asset('images/fsrp/african-union-logo.png') }}" alt="" width="56" height="56">
-                    <strong>FSRP Events</strong>
+                    <img class="admin-brand-logo" src="{{ asset('images/brand/african-union-logo.png') }}" alt="" width="56" height="56">
+                    <strong>African Union Events</strong>
                 </div>
 
                 <div class="login-heading">

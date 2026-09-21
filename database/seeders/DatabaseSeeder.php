@@ -26,6 +26,9 @@ class DatabaseSeeder extends Seeder
      */
     public function run(): void
     {
+        CaadpEventArchiveSeeder::assertRequiredAssetsExist();
+        SeedInvestmentSummitSeeder::assertRequiredAssetsExist();
+
         $this->seedAdmin();
         $this->seedSlides();
         $this->seedPrograms();
@@ -38,7 +41,10 @@ class DatabaseSeeder extends Seeder
         $this->seedAboutPage();
         $this->seedHomeSections();
         $this->seedSettings();
-        $this->call(SeedInvestmentSummitSeeder::class);
+        $this->call([
+            CaadpEventArchiveSeeder::class,
+            SeedInvestmentSummitSeeder::class,
+        ]);
     }
 
     private function seedAdmin(): void

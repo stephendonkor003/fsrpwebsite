@@ -1,11 +1,11 @@
 <?php
 
 return [
-    'canonical_url' => env('SEO_CANONICAL_URL', 'https://fsrp.africa'),
+    'canonical_url' => env('SEO_CANONICAL_URL', env('APP_URL', 'http://localhost')),
     'indexing_enabled' => env('SEO_INDEXING_ENABLED', true),
-    'image' => '/images/fsrp/water-food-resilience-1.jpg',
-    'image_width' => 1920,
-    'image_height' => 1080,
+    'image' => '/images/seed-investment-summit/seed-investment-summit-2026.jpeg',
+    'image_width' => 1254,
+    'image_height' => 1254,
     'google_verification' => env('GOOGLE_SITE_VERIFICATION'),
     'bing_verification' => env('BING_SITE_VERIFICATION'),
     'social_locales' => [

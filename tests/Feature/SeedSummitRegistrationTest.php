@@ -51,6 +51,8 @@ class SeedSummitRegistrationTest extends TestCase
             ->assertOk()
             ->assertSee('Inaugural Seed Investment Summit')
             ->assertSee('name="passport_number"', false)
+            ->assertSee('name="passport_photo" type="file" accept="image/jpeg,image/png,image/webp" required', false)
+            ->assertSee('Delegate Profile Photo')
             ->assertSee('name="official_email"', false)
             ->assertSee('name="data_protection_declaration"', false)
             ->assertSee('/images/seed-investment-summit/seed-investment-summit-2026.jpeg', false)
@@ -144,6 +146,7 @@ class SeedSummitRegistrationTest extends TestCase
                 'first_name',
                 'surname',
                 'passport_number',
+                'passport_photo',
                 'organisation',
                 'mobile_number',
                 'official_email',
@@ -155,6 +158,7 @@ class SeedSummitRegistrationTest extends TestCase
         $this->assertDatabaseCount('event_registrations', 0);
         $this->assertSame([], Storage::disk('local')->allFiles());
         $this->assertSame([], session('_old_input', []));
+        $this->assertSame('Upload a clear delegate profile photo.', session('errors')?->first('passport_photo'));
         Queue::assertNothingPushed();
     }
 
@@ -375,6 +379,59 @@ class SeedSummitRegistrationTest extends TestCase
         $this->assertStringContainsString($this->pdfHex('Passport Number: P1234567'), $pdf);
     }
 
+    public function test_pdf_neatly_embeds_the_encrypted_delegate_profile_photo(): void
+    {
+        Storage::fake('local');
+        $registration = EventRegistration::factory()->for($this->event)->create([
+            'first_name' => 'Ama',
+            'surname' => 'Mensah',
+        ]);
+        $photo = UploadedFile::fake()->image('delegate-profile.png', 1200, 500);
+        $photoContents = file_get_contents($photo->getRealPath());
+        $photoPath = 'event-registrations/'.$registration->public_id.'/profile-photo.enc';
+        $this->assertIsString($photoContents);
+        Storage::disk('local')->put($photoPath, Crypt::encryptString($photoContents));
+        $registration->update([
+            'passport_photo_path' => $photoPath,
+            'passport_photo_original_name' => 'delegate-profile.png',
+        ]);
+
+        $pdf = app(SeedSummitRegistrationPdf::class)->render($registration->fresh());
+
+        $this->assertStringStartsWith('%PDF-1.4', $pdf);
+        $this->assertStringContainsString('/Subtype /Image', $pdf);
+        $this->assertStringContainsString('/Width 280 /Height 350', $pdf);
+        $this->assertStringContainsString('/Filter /DCTDecode', $pdf);
+        $this->assertStringContainsString('/Photo Do', $pdf);
+        $this->assertStringContainsString(
+            $this->pdfHex('Delegate Profile Photo: delegate-profile.png'),
+            $pdf,
+        );
+        $this->assertStringNotContainsString($photoContents, $pdf);
+        $this->assertLessThan(
+            (int) config('services.microsoft_graph.max_attachment_bytes', 3_000_000),
+            strlen($pdf),
+        );
+    }
+
+    public function test_pdf_uses_a_professional_placeholder_for_a_legacy_registration_without_a_photo(): void
+    {
+        $registration = EventRegistration::factory()->for($this->event)->create([
+            'passport_photo_path' => null,
+            'passport_photo_original_name' => null,
+        ]);
+
+        $pdf = app(SeedSummitRegistrationPdf::class)->render($registration);
+
+        $this->assertStringStartsWith('%PDF-1.4', $pdf);
+        $this->assertStringNotContainsString('/Subtype /Image', $pdf);
+        $this->assertStringContainsString($this->pdfHex('PHOTO'), $pdf);
+        $this->assertStringContainsString(
+            $this->pdfHex('Privacy notice: This record contains personal data.'),
+            $pdf,
+        );
+    }
+
     public function test_pdf_shapes_arabic_preserves_logical_text_and_segments_mixed_font_runs(): void
     {
         $registration = EventRegistration::factory()->for($this->event)->create([
@@ -485,6 +542,7 @@ class SeedSummitRegistrationTest extends TestCase
         $this->assertSame(EventRegistration::EMAIL_SENT, $registration->fresh()->confirmation_email_status);
 
         $mail = new SeedSummitRegistrationConfirmation($registration);
+        $mail->assertHasSubject('Registration received - Confirm your email - Inaugural Seed Investment Summit');
         $html = $mail->render();
         $content = $mail->content();
         $text = view($content->text, $content->with)->render();
@@ -498,7 +556,9 @@ class SeedSummitRegistrationTest extends TestCase
         $this->assertStringNotContainsString('private@example.test', $html);
         $this->assertStringContainsString('/verify-email?', $html);
         $this->assertStringContainsString('Resilient Seed Systems for a Food Secure Africa', $html);
+        $this->assertStringContainsString('Step 1 of 2', $html);
         $this->assertStringContainsString('alt="African Union"', $html);
+        $this->assertStringNotContainsString('CAADP', $html);
         $this->assertStringNotContainsString('/pdf?', $html);
         $this->assertStringNotContainsString('View registration', $html);
         $this->assertStringContainsString('&signature=', $text);
@@ -725,13 +785,19 @@ class SeedSummitRegistrationTest extends TestCase
             strlen($pdf),
         );
         $mail = new SeedSummitRegistrationReceipt($registration->fresh(), $pdf);
+        $mail->assertHasSubject(
+            'Registration acknowledgement - Inaugural Seed Investment Summit - '.$registration->public_id,
+        );
         $html = $mail->render();
         $content = $mail->content();
         $text = view($content->text, $content->with)->render();
 
+        $this->assertStringContainsString('Registration acknowledgement', $html);
         $this->assertStringContainsString('Email confirmed', $html);
         $this->assertStringContainsString('Complete registration copy attached', $html);
+        $this->assertStringContainsString('profile photo', $html);
         $this->assertStringContainsString('OFFICE OF THE COMMISSIONER - ARBE', $html);
+        $this->assertStringNotContainsString('CAADP', $html);
         $this->assertStringContainsString('5-7 October 2026', $html);
         $this->assertStringContainsString('Resilient Seed Systems for a Food Secure Africa', $html);
         $this->assertStringContainsString(

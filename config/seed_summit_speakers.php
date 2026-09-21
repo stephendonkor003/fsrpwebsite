@@ -1,0 +1,88 @@
+<?php
+
+return [
+    [
+        'source_order' => 1,
+        'name' => 'H.E Moses Vilakati',
+        'title' => 'Commissioner, Agriculture, Rural Development, Blue Economy & Sustainable Development',
+        'organisation' => 'African Union Commission',
+        'image' => 'images/seed-investment-summit/speakers/01-he-moses-vilakati.png',
+    ],
+    [
+        'source_order' => 2,
+        'name' => 'Hon. Russell Dlamini',
+        'title' => 'Prime Minister',
+        'organisation' => 'Kingdom of Eswatini',
+        'image' => 'images/seed-investment-summit/speakers/02-hon-russell-dlamini.png',
+    ],
+    [
+        'source_order' => 3,
+        'name' => 'Hon. John Dumelo',
+        'title' => 'Deputy Minister, Agriculture and Food Security',
+        'organisation' => 'Republic of Ghana',
+        'image' => 'images/seed-investment-summit/speakers/03-hon-john-dumelo.png',
+    ],
+    [
+        'source_order' => 4,
+        'name' => 'Hon. Dr. Michael Roberto Kenyi Leggi',
+        'title' => 'Undersecretary for Agriculture and Food Security',
+        'organisation' => 'Republic of South Sudan',
+        'image' => 'images/seed-investment-summit/speakers/04-hon-dr-michael-roberto-kenyi-leggi.png',
+    ],
+    [
+        'source_order' => 5,
+        'name' => 'Honourable Dr. Anxious Jongwe Masuka',
+        'title' => 'Minister of Lands, Agriculture, Fisheries, Water and Rural Development',
+        'organisation' => 'Republic of Zimbabwe',
+        'image' => 'images/seed-investment-summit/speakers/05-honourable-dr-anxious-jongwe-masuka.png',
+    ],
+    [
+        'source_order' => 6,
+        'name' => 'Hon. Zahra Ige.',
+        'title' => 'Deputy Minister of Agriculture and Irrigation',
+        'organisation' => 'Republic of Somalia',
+        'image' => 'images/seed-investment-summit/speakers/06-hon-zahra-ige.png',
+    ],
+    [
+        'source_order' => 7,
+        'name' => 'Hon. Dr Isata Kamanda',
+        'title' => 'Deputy Minister of Agriculture and Food Security',
+        'organisation' => 'Republic of Sierra Leone',
+        'image' => 'images/seed-investment-summit/speakers/07-hon-dr-isata-kamanda.png',
+    ],
+    [
+        'source_order' => 8,
+        'name' => 'J. Alexander Nuetah',
+        'title' => 'Minister, Ministry of Agriculture',
+        'organisation' => 'Republic of Liberia',
+        'image' => 'images/seed-investment-summit/speakers/08-j-alexander-nuetah.png',
+    ],
+    [
+        'source_order' => 9,
+        'name' => 'Abdellah Bah El Mad',
+        'title' => 'African Union Commission Ambassador',
+        'organisation' => 'Sahrawi Arab Democratic Republic (SADR)',
+        'image' => 'images/seed-investment-summit/speakers/09-abdellah-bah-el-mad.png',
+    ],
+    [
+        'source_order' => 10,
+        'name' => 'Dr. Edwin Gorataone Dikoloti',
+        'title' => 'Minister, of Lands and Agriculture',
+        'organisation' => 'Republic of Botswana',
+        'image' => 'images/seed-investment-summit/speakers/10-dr-edwin-gorataone-dikoloti.png',
+    ],
+    [
+        'source_order' => 11,
+        'name' => 'Hon. Prof. Emmanuel Mbetid-Bessane',
+        'title' => 'Minister of Agriculture and Rural Development',
+        'organisation' => 'Central African Republic (CAR)',
+        'image' => 'images/seed-investment-summit/speakers/11-hon-prof-emmanuel-mbetid-bessane.png',
+    ],
+    [
+        'source_order' => 13,
+        'name' => 'Wallace Jude Keith Cosgrow',
+        'title' => 'Minister, Fisheries, Agriculture & Blue Economy',
+        'organisation' => 'Republic of Seychelles',
+        'image' => 'images/seed-investment-summit/speakers/13-wallace-jude-keith-cosgrow.png',
+    ],
+];

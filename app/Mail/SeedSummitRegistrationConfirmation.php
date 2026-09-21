@@ -24,7 +24,7 @@ class SeedSummitRegistrationConfirmation extends Mailable
     public function envelope(): Envelope
     {
         return new Envelope(
-            subject: 'Action required: confirm your email - Inaugural Seed Investment Summit',
+            subject: 'Registration received - Confirm your email - Inaugural Seed Investment Summit',
         );
     }
 
@@ -33,7 +33,8 @@ class SeedSummitRegistrationConfirmation extends Mailable
      */
     public function content(): Content
     {
-        $expiresAt = now()->addDays(max(1, (int) config('seed_summit.email_verification_days', 7)));
+        $verificationExpiryDays = max(1, (int) config('seed_summit.email_verification_days', 7));
+        $expiresAt = now()->addDays($verificationExpiryDays);
         $parameters = [
             'locale' => $this->registration->locale,
             'registration' => $this->registration,
@@ -59,6 +60,7 @@ class SeedSummitRegistrationConfirmation extends Mailable
                 'eventDateText' => $this->plainText($eventDate),
                 'eventVenueText' => $this->plainText($eventVenue),
                 'registrationReferenceText' => $this->plainText($registrationReference),
+                'verificationExpiryDays' => $verificationExpiryDays,
                 'verificationUrl' => URL::temporarySignedRoute(
                     'seed-summit.registrations.verify-email.show',
                     $expiresAt,

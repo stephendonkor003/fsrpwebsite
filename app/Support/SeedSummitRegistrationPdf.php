@@ -3,10 +3,25 @@
 namespace App\Support;
 
 use App\Models\EventRegistration;
+use Illuminate\Support\Facades\Crypt;
+use Illuminate\Support\Facades\Storage;
+use Throwable;
 
 class SeedSummitRegistrationPdf
 {
-    private const BODY_TEXT_WIDTH = 499.0;
+    private const BODY_TEXT_WIDTH = 491.0;
+
+    private const BODY_HEIGHT = 600;
+
+    private const BODY_START_Y = 679;
+
+    private const PHOTO_HEIGHT = 350;
+
+    private const PHOTO_MAX_BYTES = 180_000;
+
+    private const PHOTO_WIDTH = 280;
+
+    private const SOURCE_IMAGE_MAX_PIXELS = 24_000_000;
 
     /** @var array<int, array{0: int, 1: ?int, 2: ?int, 3: ?int}> */
     private const ARABIC_FORMS = [
@@ -56,7 +71,13 @@ class SeedSummitRegistrationPdf
         $documentLines = [];
 
         foreach ($this->summary->for($registration) as $section) {
-            $documentLines[] = ['text' => $section['title'], 'font' => 'F2', 'size' => 11, 'leading' => 19];
+            $documentLines[] = [
+                'text' => $section['title'],
+                'font' => 'F2',
+                'size' => 11,
+                'leading' => 24,
+                'kind' => 'section',
+            ];
 
             foreach ($section['items'] as $item) {
                 foreach ($this->wrap($item['label'].': '.$item['value'], self::BODY_TEXT_WIDTH, 9) as $line) {
@@ -65,31 +86,36 @@ class SeedSummitRegistrationPdf
                         'font' => 'F1',
                         'size' => 9,
                         'leading' => 13,
+                        'kind' => 'item',
                     ];
                 }
             }
 
-            $documentLines[] = ['text' => '', 'font' => 'F1', 'size' => 9, 'leading' => 8];
+            $documentLines[] = [
+                'text' => '',
+                'font' => 'F1',
+                'size' => 9,
+                'leading' => 7,
+                'kind' => 'space',
+            ];
         }
 
-        $pages = array_chunk($documentLines, 48);
-
-        if ($pages === []) {
-            $pages = [[]];
-        }
+        $pages = $this->paginate($documentLines);
 
         return $this->buildPdf($pages, $registration);
     }
 
     /**
-     * @param  array<int, array<int, array{text: string, font: string, size: int, leading: int}>>  $pages
+     * @param  array<int, array<int, array{text: string, font: string, size: int, leading: int, kind: string}>>  $pages
      */
     private function buildPdf(array $pages, EventRegistration $registration): string
     {
         $pageCount = count($pages);
         $primaryFontId = 3 + ($pageCount * 2);
         $fallbackFontId = $primaryFontId + 6;
-        $lastObjectId = $fallbackFontId + 5;
+        $portrait = $this->portraitImage($registration);
+        $imageId = $portrait === null ? null : $fallbackFontId + 6;
+        $lastObjectId = $imageId ?? $fallbackFontId + 5;
         $objects = [
             1 => '<< /Type /Catalog /Pages 2 0 R >>',
         ];
@@ -99,12 +125,15 @@ class SeedSummitRegistrationPdf
             $pageId = 3 + ($index * 2);
             $contentId = $pageId + 1;
             $pageReferences[] = $pageId.' 0 R';
-            $stream = $this->pageStream($lines, $registration, $index + 1, $pageCount);
+            $hasPortrait = $index === 0 && $portrait !== null;
+            $stream = $this->pageStream($lines, $registration, $index + 1, $pageCount, $hasPortrait);
+            $imageResources = $hasPortrait ? " /XObject << /Photo {$imageId} 0 R >>" : '';
             $objects[$pageId] = sprintf(
-                '<< /Type /Page /Parent 2 0 R /MediaBox [0 0 595 842] /Resources << /Font << /F1 %d 0 R /F2 %d 0 R /F3 %d 0 R >> >> /Contents %d 0 R >>',
+                '<< /Type /Page /Parent 2 0 R /MediaBox [0 0 595 842] /Resources << /Font << /F1 %d 0 R /F2 %d 0 R /F3 %d 0 R >>%s >> /Contents %d 0 R >>',
                 $primaryFontId,
                 $primaryFontId,
                 $fallbackFontId,
+                $imageResources,
                 $contentId,
             );
             $objects[$contentId] = '<< /Length '.strlen($stream)." >>\nstream\n{$stream}\nendstream";
@@ -123,6 +152,17 @@ class SeedSummitRegistrationPdf
             $this->fallbackFont,
             $this->usedCodePoints['fallback'],
         );
+
+        if ($portrait !== null && $imageId !== null) {
+            $objects[$imageId] = sprintf(
+                "<< /Type /XObject /Subtype /Image /Width %d /Height %d /ColorSpace /DeviceRGB /BitsPerComponent 8 /Interpolate true /Filter /DCTDecode /Length %d >>\nstream\n%s\nendstream",
+                $portrait['width'],
+                $portrait['height'],
+                strlen($portrait['data']),
+                $portrait['data'],
+            );
+        }
+
         ksort($objects);
 
         $pdf = "%PDF-1.4\n%\xE2\xE3\xCF\xD3\n";
@@ -147,40 +187,368 @@ class SeedSummitRegistrationPdf
     }
 
     /**
-     * @param  array<int, array{text: string, font: string, size: int, leading: int}>  $lines
+     * @param  array<int, array{text: string, font: string, size: int, leading: int, kind: string}>  $lines
      */
-    private function pageStream(array $lines, EventRegistration $registration, int $page, int $pageCount): string
-    {
+    private function pageStream(
+        array $lines,
+        EventRegistration $registration,
+        int $page,
+        int $pageCount,
+        bool $hasPortrait,
+    ): string {
         $commands = [
-            'BT',
-            '/F2 17 Tf',
-            '1 0 0 1 48 800 Tm',
-            '<'.$this->pdfText('Inaugural Seed Investment Summit Registration').'> Tj',
-            '/F1 9 Tf',
-            '1 0 0 1 48 780 Tm',
-            '<'.$this->pdfText('Acknowledgement and delegate record').'> Tj',
-            '/F1 8 Tf',
-            '1 0 0 1 400 800 Tm',
-            '<'.$this->pdfText('Ref: '.$registration->public_id).'> Tj',
+            'q',
+            '0.978 0.984 0.980 rg',
+            '0 0 595 842 re f',
+            '0.043 0.235 0.165 rg',
+            '0 714 595 128 re f',
+            '0.788 0.624 0.176 rg',
+            '0 710 595 4 re f',
+            '0.996 1 0.996 rg',
+            '32 60 531 638 re f',
+            '0.843 0.882 0.855 RG',
+            '0.7 w',
+            '32 60 531 638 re S',
+            'Q',
+            'q',
+            '1 1 1 rg',
+            '0.788 0.624 0.176 RG',
+            '1.4 w',
+            '461 718 90 114 re B',
+            'Q',
         ];
-        $y = 752;
 
-        foreach ($lines as $line) {
+        if ($page === 1 && $hasPortrait) {
             array_push(
                 $commands,
-                ...$this->lineCommands($line['text'], $line['font'], $line['size'], 48, $y),
+                'q',
+                '80 0 0 100 466 724 cm',
+                '/Photo Do',
+                'Q',
             );
+        } else {
+            array_push(
+                $commands,
+                'q',
+                '0.930 0.957 0.938 rg',
+                '466 724 80 100 re f',
+                '0.357 0.514 0.416 rg',
+                '506 798 m',
+                '511.523 798 516 793.523 516 788 c',
+                '516 782.477 511.523 778 506 778 c',
+                '500.477 778 496 782.477 496 788 c',
+                '496 793.523 500.477 798 506 798 c',
+                'f',
+                '489 750 34 22 re f',
+                'Q',
+            );
+        }
+
+        array_push($commands, 'BT', '0.788 0.624 0.176 rg');
+        array_push($commands, ...$this->lineCommands('AFRICAN UNION COMMISSION', 'F2', 8, 44, 816));
+        $commands[] = '1 1 1 rg';
+        array_push(
+            $commands,
+            ...$this->lineCommands('Inaugural Seed Investment Summit Registration', 'F2', 16, 44, 791),
+        );
+        $commands[] = '0.882 0.933 0.898 rg';
+        array_push(
+            $commands,
+            ...$this->lineCommands(
+                $page === 1 ? 'Acknowledgement and official delegate record' : 'Official delegate record - continued',
+                'F1',
+                9,
+                44,
+                768,
+            ),
+        );
+        $commands[] = '1 1 1 rg';
+        array_push(
+            $commands,
+            ...$this->lineCommands('Reference: '.$registration->public_id, 'F1', 8, 44, 741),
+        );
+
+        if (! $hasPortrait || $page !== 1) {
+            array_push(
+                $commands,
+                '0.043 0.235 0.165 rg',
+                ...$this->lineCommands($page === 1 ? 'PHOTO' : 'RECORD', 'F2', 7, 488, 735),
+            );
+        }
+
+        $commands[] = 'ET';
+        $y = self::BODY_START_Y;
+
+        foreach ($lines as $line) {
+            if ($line['kind'] === 'space') {
+                $y -= $line['leading'];
+
+                continue;
+            }
+
+            if ($line['kind'] === 'section') {
+                array_push(
+                    $commands,
+                    'q',
+                    '0.925 0.957 0.933 rg',
+                    '40 '.($y - 6).' 515 21 re f',
+                    '0.788 0.624 0.176 rg',
+                    '40 '.($y - 6).' 4 21 re f',
+                    'Q',
+                );
+            }
+
+            array_push(
+                $commands,
+                'BT',
+                $line['kind'] === 'section' ? '0.043 0.235 0.165 rg' : '0.137 0.196 0.161 rg',
+            );
+            array_push(
+                $commands,
+                ...$this->lineCommands(
+                    $line['text'],
+                    $line['font'],
+                    $line['size'],
+                    $line['kind'] === 'section' ? 52 : 48,
+                    $y,
+                ),
+            );
+            $commands[] = 'ET';
             $y -= $line['leading'];
         }
 
-        $commands[] = '/F1 8 Tf';
-        $commands[] = '1 0 0 1 48 28 Tm';
-        $commands[] = '<'.$this->pdfText('African Union Commission - Inaugural Seed Investment Summit').'> Tj';
-        $commands[] = '1 0 0 1 500 28 Tm';
-        $commands[] = '<'.$this->pdfText("Page {$page} of {$pageCount}").'> Tj';
+        array_push(
+            $commands,
+            'q',
+            '0.788 0.624 0.176 RG',
+            '1 w',
+            '40 51 m 555 51 l S',
+            'Q',
+            'BT',
+            '0.239 0.333 0.278 rg',
+        );
+        array_push(
+            $commands,
+            ...$this->lineCommands(
+                'Privacy notice: This record contains personal data. Store securely and share only when authorised.',
+                'F1',
+                7,
+                40,
+                35,
+            ),
+        );
+        $commands[] = '0.043 0.235 0.165 rg';
+        array_push($commands, ...$this->lineCommands("Page {$page} of {$pageCount}", 'F2', 7, 503, 20));
+        $commands[] = '0.357 0.443 0.392 rg';
+        array_push(
+            $commands,
+            ...$this->lineCommands('African Union Commission - Inaugural Seed Investment Summit', 'F1', 7, 40, 20),
+        );
         $commands[] = 'ET';
 
         return implode("\n", $commands);
+    }
+
+    /**
+     * @param  array<int, array{text: string, font: string, size: int, leading: int, kind: string}>  $lines
+     * @return array<int, array<int, array{text: string, font: string, size: int, leading: int, kind: string}>>
+     */
+    private function paginate(array $lines): array
+    {
+        $groups = [];
+        $group = [];
+
+        foreach ($lines as $line) {
+            if ($line['kind'] === 'section' && $group !== []) {
+                $groups[] = $group;
+                $group = [];
+            }
+
+            $group[] = $line;
+        }
+
+        if ($group !== []) {
+            $groups[] = $group;
+        }
+
+        $pages = [];
+        $page = [];
+        $usedHeight = 0;
+
+        foreach ($groups as $sectionLines) {
+            $sectionHeight = array_sum(array_column($sectionLines, 'leading'));
+
+            if ($page !== [] && $usedHeight + $sectionHeight > self::BODY_HEIGHT) {
+                $pages[] = $page;
+                $page = [];
+                $usedHeight = 0;
+            }
+
+            foreach ($sectionLines as $line) {
+                if ($page !== [] && $usedHeight + $line['leading'] > self::BODY_HEIGHT) {
+                    $pages[] = $page;
+                    $page = [];
+                    $usedHeight = 0;
+                }
+
+                $page[] = $line;
+                $usedHeight += $line['leading'];
+            }
+        }
+
+        if ($page !== []) {
+            $pages[] = $page;
+        }
+
+        return $pages === [] ? [[]] : $pages;
+    }
+
+    /** @return array{data: string, width: int, height: int}|null */
+    private function portraitImage(EventRegistration $registration): ?array
+    {
+        $path = trim((string) $registration->passport_photo_path);
+        $expectedDirectory = 'event-registrations/'.$registration->public_id.'/';
+
+        if ($path === '' || ! str_starts_with(str_replace('\\', '/', $path), $expectedDirectory)) {
+            return null;
+        }
+
+        try {
+            $encrypted = Storage::disk('local')->get($path);
+
+            if (! is_string($encrypted) || $encrypted === '') {
+                return null;
+            }
+
+            $contents = Crypt::decryptString($encrypted);
+            $encrypted = '';
+            $metadata = @getimagesizefromstring($contents);
+            $allowedTypes = [IMAGETYPE_JPEG, IMAGETYPE_PNG, IMAGETYPE_WEBP];
+
+            if (! is_array($metadata)
+                || ! in_array($metadata[2] ?? null, $allowedTypes, true)
+                || ($metadata[0] ?? 0) < 1
+                || ($metadata[1] ?? 0) < 1
+                || ($metadata[0] * $metadata[1]) > self::SOURCE_IMAGE_MAX_PIXELS
+                || ! function_exists('imagecreatefromstring')) {
+                return null;
+            }
+
+            $source = @imagecreatefromstring($contents);
+            $contents = '';
+
+            if ($source === false) {
+                return null;
+            }
+
+            try {
+                $sourceWidth = imagesx($source);
+                $sourceHeight = imagesy($source);
+                [$cropX, $cropY, $cropWidth, $cropHeight] = $this->portraitCrop(
+                    $sourceWidth,
+                    $sourceHeight,
+                );
+                $portrait = imagecreatetruecolor(self::PHOTO_WIDTH, self::PHOTO_HEIGHT);
+
+                if ($portrait === false) {
+                    return null;
+                }
+
+                try {
+                    imagealphablending($portrait, true);
+                    $white = imagecolorallocate($portrait, 255, 255, 255);
+                    imagefilledrectangle(
+                        $portrait,
+                        0,
+                        0,
+                        self::PHOTO_WIDTH,
+                        self::PHOTO_HEIGHT,
+                        $white,
+                    );
+                    $resampled = imagecopyresampled(
+                        $portrait,
+                        $source,
+                        0,
+                        0,
+                        $cropX,
+                        $cropY,
+                        self::PHOTO_WIDTH,
+                        self::PHOTO_HEIGHT,
+                        $cropWidth,
+                        $cropHeight,
+                    );
+
+                    if (! $resampled) {
+                        return null;
+                    }
+
+                    $jpeg = $this->encodePortraitJpeg($portrait);
+
+                    if ($jpeg === null) {
+                        return null;
+                    }
+
+                    return [
+                        'data' => $jpeg,
+                        'width' => self::PHOTO_WIDTH,
+                        'height' => self::PHOTO_HEIGHT,
+                    ];
+                } finally {
+                    imagedestroy($portrait);
+                }
+            } finally {
+                imagedestroy($source);
+            }
+        } catch (Throwable) {
+            return null;
+        }
+    }
+
+    /** @return array{0: int, 1: int, 2: int, 3: int} */
+    private function portraitCrop(int $sourceWidth, int $sourceHeight): array
+    {
+        $targetRatio = self::PHOTO_WIDTH / self::PHOTO_HEIGHT;
+        $sourceRatio = $sourceWidth / $sourceHeight;
+
+        if ($sourceRatio > $targetRatio) {
+            $cropWidth = max(1, (int) floor($sourceHeight * $targetRatio));
+
+            return [
+                (int) floor(($sourceWidth - $cropWidth) / 2),
+                0,
+                $cropWidth,
+                $sourceHeight,
+            ];
+        }
+
+        $cropHeight = max(1, (int) floor($sourceWidth / $targetRatio));
+
+        return [
+            0,
+            (int) floor(($sourceHeight - $cropHeight) / 2),
+            $sourceWidth,
+            $cropHeight,
+        ];
+    }
+
+    private function encodePortraitJpeg(mixed $portrait): ?string
+    {
+        foreach ([82, 74, 66, 58, 50] as $quality) {
+            ob_start();
+
+            try {
+                $encoded = @imagejpeg($portrait, null, $quality);
+                $jpeg = ob_get_contents();
+            } finally {
+                ob_end_clean();
+            }
+
+            if ($encoded && is_string($jpeg) && $jpeg !== '' && strlen($jpeg) <= self::PHOTO_MAX_BYTES) {
+                return $jpeg;
+            }
+        }
+
+        return null;
     }
 
     /** @return array<int, string> */

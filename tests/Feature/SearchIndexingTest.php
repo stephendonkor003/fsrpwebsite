@@ -17,7 +17,7 @@ class SearchIndexingTest extends TestCase
     {
         parent::setUp();
 
-        config(['seo.canonical_url' => 'https://fsrp.africa', 'seo.indexing_enabled' => false, 'app.timezone' => 'UTC']);
+        config(['seo.canonical_url' => 'https://events.example.test', 'seo.indexing_enabled' => false, 'app.timezone' => 'UTC']);
     }
 
     public function test_the_root_permanently_redirects_to_the_default_language(): void
@@ -29,17 +29,17 @@ class SearchIndexingTest extends TestCase
     {
         $this->enableProductionIndexing();
 
-        $this->get('https://fsrp.africa/robots.txt')
+        $this->get('https://events.example.test/robots.txt')
             ->assertOk()->assertHeader('Content-Type', 'text/plain; charset=UTF-8')
             ->assertSee("User-agent: *\nAllow: /\n", false)
-            ->assertSee('Sitemap: https://fsrp.africa/sitemap.xml', false)
+            ->assertSee('Sitemap: https://events.example.test/sitemap.xml', false)
             ->assertDontSee('Disallow:', false);
 
-        $this->get('https://fsrp.africa/admin/login')
+        $this->get('https://events.example.test/admin/login')
             ->assertOk()->assertHeader('X-Robots-Tag', 'noindex, nofollow');
     }
 
-    #[TestWith(['testing', true, 'https://fsrp.africa'])]
+    #[TestWith(['testing', true, 'https://events.example.test'])]
     #[TestWith(['production', true, 'http://127.0.0.1:8001'])]
     #[TestWith(['production', true, 'https://untrusted.example'])]
     public function test_nonpublic_environments_disable_robot_crawling(string $environment, bool $indexingEnabled, string $requestBase): void
@@ -57,12 +57,12 @@ class SearchIndexingTest extends TestCase
         $this->enableProductionIndexing();
         config(['seo.indexing_enabled' => false]);
 
-        $this->get('https://fsrp.africa/robots.txt')
+        $this->get('https://events.example.test/robots.txt')
             ->assertOk()->assertHeader('X-Robots-Tag', 'noindex, follow')
             ->assertSee("User-agent: *\nAllow: /\n", false)
             ->assertDontSee('Disallow:', false)->assertDontSee('Sitemap:', false);
 
-        $this->get('https://fsrp.africa/en')
+        $this->get('https://events.example.test/en')
             ->assertOk()->assertHeader('X-Robots-Tag', 'noindex, follow');
     }
 
@@ -70,7 +70,7 @@ class SearchIndexingTest extends TestCase
     {
         $this->enableProductionIndexing();
 
-        $response = $this->get('https://fsrp.africa/sitemap.xml')
+        $response = $this->get('https://events.example.test/sitemap.xml')
             ->assertOk()->assertHeader('Content-Type', 'application/xml; charset=UTF-8');
         $xml = $this->xml($response->getContent());
         $entries = $xml->xpath('//s:url');
@@ -80,12 +80,12 @@ class SearchIndexingTest extends TestCase
 
         foreach (['en', 'fr', 'ar', 'pt', 'es', 'sw'] as $locale) {
             foreach (['', '/about', '/events', '/program-outline', '/speakers', '/resources', '/news', '/faq'] as $path) {
-                $url = 'https://fsrp.africa/'.$locale.$path;
+                $url = 'https://events.example.test/'.$locale.$path;
                 $matching = $xml->xpath('//s:url[s:loc="'.$url.'"]');
                 $this->assertCount(1, $matching);
                 $alternates = $matching[0]->children('http://www.w3.org/1999/xhtml')->link;
                 $this->assertCount(7, $alternates);
-                $this->assertSame('https://fsrp.africa/en'.$path, (string) $alternates[6]->attributes()->href);
+                $this->assertSame('https://events.example.test/en'.$path, (string) $alternates[6]->attributes()->href);
                 $this->assertSame('x-default', (string) $alternates[6]->attributes()->hreflang);
             }
         }
@@ -106,7 +106,7 @@ class SearchIndexingTest extends TestCase
         $posts[2]->update(['slug' => 'future-news', 'is_published' => true, 'published_at' => now()->addDay()]);
         $posts[3]->update(['slug' => 'draft-news', 'is_published' => false]);
 
-        $response = $this->get('https://fsrp.africa/sitemap.xml')->assertOk()
+        $response = $this->get('https://events.example.test/sitemap.xml')->assertOk()
             ->assertDontSee('future-news')->assertDontSee('draft-news')
             ->assertDontSee('pan-african-leadership-summit')
             ->assertDontSee('/admin')->assertDontSee('/download')->assertDontSee('?q=')->assertDontSee('?category=');
@@ -114,12 +114,12 @@ class SearchIndexingTest extends TestCase
 
         $this->assertCount(66, $xml->xpath('//s:url'));
         $this->assertCount(18, $xml->xpath('//s:lastmod'));
-        $eventEntry = $xml->xpath('//s:url[s:loc="https://fsrp.africa/en/events/public-convening"]')[0];
+        $eventEntry = $xml->xpath('//s:url[s:loc="https://events.example.test/en/events/public-convening"]')[0];
         $this->assertSame('2026-09-01T09:30:00+00:00', (string) $eventEntry->lastmod);
 
         $this->travel(1)->days();
 
-        $published = $this->xml($this->get('https://fsrp.africa/sitemap.xml')->getContent());
+        $published = $this->xml($this->get('https://events.example.test/sitemap.xml')->getContent());
         $this->assertCount(6, $published->xpath('//s:url[contains(s:loc,"/news/future-news")]'));
     }
 
@@ -129,7 +129,7 @@ class SearchIndexingTest extends TestCase
 
         $this->get('http://127.0.0.1:8001/sitemap.xml')
             ->assertOk()->assertHeader('X-Robots-Tag', 'noindex, follow')
-            ->assertSee('https://fsrp.africa/en', false)
+            ->assertSee('https://events.example.test/en', false)
             ->assertDontSee('127.0.0.1')->assertDontSee('localhost');
     }
 

@@ -236,12 +236,12 @@ class ContentController extends Controller
                 }
             }],
             'video' => ['bail', 'nullable', 'string', 'max:2048', function (string $attribute, mixed $value, Closure $fail): void {
-                if (preg_match('#^/videos/fsrp/[a-zA-Z0-9_-]+\.(mp4|webm)$#', $value)) {
+                if (preg_match('#^/videos/events/[a-zA-Z0-9_-]+\.(mp4|webm)$#', $value)) {
                     return;
                 }
 
                 if (! filter_var($value, FILTER_VALIDATE_URL) || ! in_array(strtolower((string) parse_url($value, PHP_URL_SCHEME)), ['http', 'https'], true)) {
-                    $fail('Use an HTTP or HTTPS video URL, or a managed /videos/fsrp/ video path.');
+                    $fail('Use an HTTP or HTTPS video URL, or a managed /videos/events/ video path.');
                 }
             }],
             'document' => [$item->exists ? 'nullable' : 'required', 'file', 'mimes:pdf,docx,xlsx', 'extensions:pdf,docx,xlsx', 'max:20480'],

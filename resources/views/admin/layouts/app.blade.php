@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <meta name="theme-color" content="#172f2a">
-    <title>@yield('title', 'Dashboard') · FSRP Events Administration</title>
+    <title>@yield('title', 'Dashboard') · African Union Events Administration</title>
     <link rel="stylesheet" href="{{ asset('assets/admin.css') }}">
     @stack('head')
 </head>
@@ -23,10 +23,10 @@
 
         <aside class="admin-sidebar" id="admin-sidebar" aria-label="Administration navigation" data-sidebar>
             <div class="sidebar-brand-row">
-                <a class="admin-brand" href="{{ route('admin.dashboard') }}" aria-label="FSRP Events administration home">
-                    <img class="admin-brand-logo" src="{{ asset('images/fsrp/african-union-logo.png') }}" alt="African Union" width="56" height="56">
+                <a class="admin-brand" href="{{ route('admin.dashboard') }}" aria-label="African Union Events administration home">
+                    <img class="admin-brand-logo" src="{{ asset('images/brand/african-union-logo.png') }}" alt="African Union" width="56" height="56">
                     <span class="admin-brand-copy">
-                        <strong>FSRP Events</strong>
+                        <strong>African Union Events</strong>
                         <small>Administration</small>
                     </span>
                 </a>
@@ -85,7 +85,7 @@
                 </button>
 
                 <div class="topbar-context">
-                    <span>FSRP Events</span>
+                    <span>African Union Events</span>
                     <span aria-hidden="true">/</span>
                     <strong>@yield('title', 'Dashboard')</strong>
                 </div>

@@ -3,16 +3,16 @@
 return [
     'pages' => [
         'home' => [
-            'title' => 'Eventos y programas para la resiliencia alimentaria',
-            'description' => 'Descubre eventos FSRP y encuentros de socios, abiertos a participantes de todos los países africanos. Explora los programas y recursos disponibles.',
+            'title' => 'Eventos y programas de la Unión Africana',
+            'description' => 'Descubre la serie African Union Events, encabezada por la Cumbre inaugural de inversión en semillas, con programas, ponentes y recursos.',
         ],
         'events' => [
             'title' => 'Calendario de eventos y participación',
-            'description' => 'Encuentra los próximos eventos del FSRP y sus socios. Consulta fechas y modalidades de participación para participantes de toda África.',
+            'description' => 'Encuentra eventos actuales, próximos y archivados de la Unión Africana, con fechas, detalles de participación, programas y recursos.',
         ],
         'programmes' => [
             'title' => 'Programas de eventos y sesiones diarias',
-            'description' => 'Explora los programas diarios, las sesiones y los temas de los eventos. Prepara tus debates con el FSRP y sus socios y descarga los resúmenes disponibles.',
+            'description' => 'Explora el programa actual de la Cumbre de inversión en semillas, las sesiones confirmadas y los documentos disponibles.',
         ],
         'speakers' => [
             'title' => 'Ponentes y líderes destacados',
@@ -20,22 +20,22 @@ return [
         ],
         'resources' => [
             'title' => 'Recursos de eventos y descarga de programas',
-            'description' => 'Descarga programas, notas informativas, presentaciones e informes de eventos FSRP. Busca los documentos disponibles por evento, tipo de documento e idioma.',
+            'description' => 'Descarga programas, notas informativas, presentaciones e informes de eventos de la Unión Africana. Busca por evento, tipo de documento e idioma.',
         ],
         'news' => [
             'title' => 'Noticias de eventos y novedades de socios',
-            'description' => 'Lee las noticias de eventos FSRP, las novedades de socios y la información para participantes. Sigue los debates sobre sistemas alimentarios resilientes.',
+            'description' => 'Lee noticias de African Union Events, novedades de socios e información para participantes del programa actual y de la serie de eventos.',
         ],
         'about' => [
-            'title' => 'Acerca del portal de eventos FSRP',
-            'description' => 'Conoce cómo el portal de eventos FSRP une personas, conocimientos y alianzas de todos los países africanos en torno a la resiliencia alimentaria.',
+            'title' => 'Acerca de African Union Events',
+            'description' => 'Conoce cómo African Union Events conecta a los participantes mediante una serie continua de reuniones, programas y recursos continentales.',
         ],
         'faq' => [
             'title' => 'Preguntas sobre participación y programas',
-            'description' => 'Encuentra respuestas sobre eventos FSRP, reuniones de socios, participación y programas. Consulta la información práctica antes de unirte a un evento.',
+            'description' => 'Encuentra respuestas sobre eventos de la Unión Africana, participación, programas y descargas antes de unirte a un evento.',
         ],
     ],
-    'image_alt' => 'Bomba de riego junto a campos de cultivo verdes que contribuye a la producción alimentaria y la resiliencia.',
+    'image_alt' => 'Imagen oficial de la Cumbre inaugural de inversión en semillas de la Unión Africana.',
     'page_number' => 'Página :number',
-    'editorial_team' => 'Equipo editorial de eventos FSRP',
+    'editorial_team' => 'Equipo editorial de African Union Events',
 ];

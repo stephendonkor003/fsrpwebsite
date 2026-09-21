@@ -17,26 +17,29 @@ class SeoMetadataTest extends TestCase
     {
         parent::setUp();
 
-        config(['seo.canonical_url' => 'https://fsrp.africa', 'seo.indexing_enabled' => true]);
+        config(['seo.canonical_url' => 'https://events.example.test', 'seo.indexing_enabled' => true]);
         $this->app->instance('env', 'production');
     }
 
     public function test_public_homepage_has_a_shared_large_image_and_complete_search_metadata(): void
     {
-        $response = $this->get('https://fsrp.africa/en')->assertOk();
+        $response = $this->get('https://events.example.test/en')->assertOk();
         $document = $this->document($response->getContent());
 
         $this->assertSame(1, $document->query('//title')->length);
-        $this->assertStringContainsString('Food System Resilience', $document->evaluate('string(//title)'));
-        $this->assertSame('https://fsrp.africa/en', $document->evaluate('string(//link[@rel="canonical"]/@href)'));
+        $this->assertStringContainsString('African Union Events', $document->evaluate('string(//title)'));
+        $this->assertSame('African Union Events', $document->evaluate('string(//meta[@property="og:site_name"]/@content)'));
+        $this->assertStringContainsString('African Union Events', $document->evaluate('normalize-space(//body)'));
+        $this->assertStringNotContainsString('FSRP', $document->evaluate('normalize-space(//body)'));
+        $this->assertSame('https://events.example.test/en', $document->evaluate('string(//link[@rel="canonical"]/@href)'));
         $this->assertSame('index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1', $document->evaluate('string(//meta[@name="robots"]/@content)'));
-        $this->assertSame('https://fsrp.africa/images/fsrp/water-food-resilience-1.jpg', $document->evaluate('string(//meta[@property="og:image"]/@content)'));
-        $this->assertSame('https://fsrp.africa/images/fsrp/water-food-resilience-1.jpg', $document->evaluate('string(//meta[@name="twitter:image"]/@content)'));
+        $this->assertSame('https://events.example.test/images/seed-investment-summit/seed-investment-summit-2026.jpeg', $document->evaluate('string(//meta[@property="og:image"]/@content)'));
+        $this->assertSame('https://events.example.test/images/seed-investment-summit/seed-investment-summit-2026.jpeg', $document->evaluate('string(//meta[@name="twitter:image"]/@content)'));
         $this->assertSame('summary_large_image', $document->evaluate('string(//meta[@name="twitter:card"]/@content)'));
         $this->assertSame(7, $document->query('//link[@hreflang]')->length);
-        $this->assertSame('https://fsrp.africa/en', $document->evaluate('string(//link[@hreflang="x-default"]/@href)'));
-        $dimensions = getimagesize(public_path('images/fsrp/water-food-resilience-1.jpg'));
-        $this->assertSame([1920, 1080], [$dimensions[0], $dimensions[1]]);
+        $this->assertSame('https://events.example.test/en', $document->evaluate('string(//link[@hreflang="x-default"]/@href)'));
+        $dimensions = getimagesize(public_path('images/seed-investment-summit/seed-investment-summit-2026.jpeg'));
+        $this->assertSame([1254, 1254], [$dimensions[0], $dimensions[1]]);
         $graph = $this->graph($document);
         $this->assertSame(['Organization', 'WebSite', 'WebPage'], array_column($graph['@graph'], '@type'));
     }
@@ -46,26 +49,26 @@ class SeoMetadataTest extends TestCase
         $descriptions = [];
 
         foreach (['', '/events', '/news', '/program-outline', '/speakers', '/resources', '/about', '/faq'] as $path) {
-            $document = $this->document($this->get('https://fsrp.africa/en'.$path)->assertOk()->getContent());
+            $document = $this->document($this->get('https://events.example.test/en'.$path)->assertOk()->getContent());
             $descriptions[] = $document->evaluate('string(//meta[@name="description"]/@content)');
         }
 
         $this->assertCount(8, array_unique($descriptions));
 
-        $french = $this->document($this->get('https://fsrp.africa/fr/resources')->assertOk()->getContent());
+        $french = $this->document($this->get('https://events.example.test/fr/resources')->assertOk()->getContent());
         $this->assertNotSame($descriptions[5], $french->evaluate('string(//meta[@name="description"]/@content)'));
-        $this->assertSame('https://fsrp.africa/fr/resources', $french->evaluate('string(//link[@hreflang="fr"]/@href)'));
+        $this->assertSame('https://events.example.test/fr/resources', $french->evaluate('string(//link[@hreflang="fr"]/@href)'));
     }
 
     public function test_detail_metadata_keeps_its_language_and_discards_tracking_parameters(): void
     {
         $event = Event::factory()->create(['slug' => 'regional-forum', 'title' => ['en' => 'Regional Forum', 'fr' => 'Forum régional']]);
 
-        $document = $this->document($this->get('https://fsrp.africa/fr/events/'.$event->slug.'?utm_source=email&fbclid=tracking')->assertOk()->getContent());
+        $document = $this->document($this->get('https://events.example.test/fr/events/'.$event->slug.'?utm_source=email&fbclid=tracking')->assertOk()->getContent());
 
-        $this->assertSame('https://fsrp.africa/fr/events/regional-forum', $document->evaluate('string(//link[@rel="canonical"]/@href)'));
+        $this->assertSame('https://events.example.test/fr/events/regional-forum', $document->evaluate('string(//link[@rel="canonical"]/@href)'));
         $this->assertStringContainsString('Forum régional', $document->evaluate('string(//title)'));
-        $this->assertSame('https://fsrp.africa/ar/events/regional-forum', $document->evaluate('string(//link[@hreflang="ar"]/@href)'));
+        $this->assertSame('https://events.example.test/ar/events/regional-forum', $document->evaluate('string(//link[@hreflang="ar"]/@href)'));
         $this->assertContains('Event', array_column($this->graph($document)['@graph'], '@type'));
     }
 
@@ -73,21 +76,21 @@ class SeoMetadataTest extends TestCase
     {
         Event::factory()->count(10)->create();
 
-        $document = $this->document($this->get('https://fsrp.africa/en/events?page=2&utm_source=email')->assertOk()->getContent());
+        $document = $this->document($this->get('https://events.example.test/en/events?page=2&utm_source=email')->assertOk()->getContent());
 
-        $this->assertSame('https://fsrp.africa/en/events?page=2', $document->evaluate('string(//link[@rel="canonical"]/@href)'));
-        $this->assertSame('https://fsrp.africa/fr/events?page=2', $document->evaluate('string(//link[@hreflang="fr"]/@href)'));
+        $this->assertSame('https://events.example.test/en/events?page=2', $document->evaluate('string(//link[@rel="canonical"]/@href)'));
+        $this->assertSame('https://events.example.test/fr/events?page=2', $document->evaluate('string(//link[@hreflang="fr"]/@href)'));
         $this->assertStringContainsString('Page 2', $document->evaluate('string(//title)'));
         $this->assertStringStartsWith('index, follow', $document->evaluate('string(//meta[@name="robots"]/@content)'));
     }
 
     public function test_search_results_keep_a_correct_canonical_but_are_not_indexed(): void
     {
-        $response = $this->get('https://fsrp.africa/en/resources?q=water&utm_source=email')
+        $response = $this->get('https://events.example.test/en/resources?q=water&utm_source=email')
             ->assertOk()->assertHeader('X-Robots-Tag', 'noindex, follow');
         $document = $this->document($response->getContent());
 
-        $this->assertSame('https://fsrp.africa/en/resources?q=water', $document->evaluate('string(//link[@rel="canonical"]/@href)'));
+        $this->assertSame('https://events.example.test/en/resources?q=water', $document->evaluate('string(//link[@rel="canonical"]/@href)'));
         $this->assertSame('noindex, follow', $document->evaluate('string(//meta[@name="robots"]/@content)'));
         $this->assertSame(0, $document->query('//link[@hreflang]')->length);
     }
@@ -100,7 +103,7 @@ class SeoMetadataTest extends TestCase
         $document = $this->document($response->getContent());
 
         $this->assertSame('noindex, follow', $document->evaluate('string(//meta[@name="robots"]/@content)'));
-        $this->assertSame('https://fsrp.africa/en', $document->evaluate('string(//link[@rel="canonical"]/@href)'));
+        $this->assertSame('https://events.example.test/en', $document->evaluate('string(//link[@rel="canonical"]/@href)'));
     }
 
     #[TestWith(['/admin/login'])]
@@ -108,7 +111,7 @@ class SeoMetadataTest extends TestCase
     #[TestWith(['/up'])]
     public function test_noncontent_endpoints_are_not_indexed(string $path): void
     {
-        $this->get('https://fsrp.africa'.$path)->assertHeader('X-Robots-Tag', 'noindex, nofollow');
+        $this->get('https://events.example.test'.$path)->assertHeader('X-Robots-Tag', 'noindex, nofollow');
     }
 
     public function test_model_text_is_safe_in_metadata_and_json_without_losing_its_value(): void
@@ -117,7 +120,7 @@ class SeoMetadataTest extends TestCase
         $description = 'Partner information "quoted" & participant details.';
         $event = Event::factory()->create(['title' => ['en' => $title], 'excerpt' => ['en' => $description]]);
 
-        $response = $this->get('https://fsrp.africa/en/events/'.$event->slug)->assertOk()
+        $response = $this->get('https://events.example.test/en/events/'.$event->slug)->assertOk()
             ->assertDontSee('</script><script>alert("x")</script>', false);
         $document = $this->document($response->getContent());
         $graph = $this->graph($document);
