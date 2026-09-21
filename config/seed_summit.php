@@ -5,10 +5,18 @@ $retentionDaysAfterEvent = max(1, (int) env('SEED_SUMMIT_RETENTION_DAYS_AFTER_EV
 
 return [
     'event_slug' => 'inaugural-seed-investment-summit',
+    'theme' => 'Resilient Seed Systems for a Food Secure Africa',
     'consent_version' => '2026-09-21-v2',
     'receipt_link_minutes' => 30,
     'email_verification_days' => 7,
-    'email_send_lease_seconds' => 75,
+    'email_send_lease_seconds' => max(
+        200,
+        (int) env('SEED_SUMMIT_EMAIL_SEND_LEASE_SECONDS', 200),
+    ),
+    'email_dispatch_stale_seconds' => max(
+        201,
+        (int) env('SEED_SUMMIT_EMAIL_DISPATCH_STALE_SECONDS', 300),
+    ),
     'unverified_retention_days' => $unverifiedRetentionDays,
     'retention_days_after_event' => $retentionDaysAfterEvent,
     'data_protection_notice' => sprintf(

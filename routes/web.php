@@ -49,6 +49,8 @@ Route::prefix('{locale}')->where(['locale' => 'en|fr|ar|pt|es|sw'])->middleware(
         ->name('seed-summit.registration.store');
     Route::get('/events/inaugural-seed-investment-summit/registrations/{registration:public_id}', [SeedSummitRegistrationController::class, 'show'])
         ->whereUuid('registration')->middleware('signed')->name('seed-summit.registrations.show');
+    Route::post('/events/inaugural-seed-investment-summit/registrations/{registration:public_id}/resend-confirmation', [SeedSummitRegistrationController::class, 'resendConfirmation'])
+        ->whereUuid('registration')->middleware(['signed', 'throttle:3,1'])->name('seed-summit.registrations.resend-confirmation');
     Route::get('/events/inaugural-seed-investment-summit/registrations/{registration:public_id}/pdf', [SeedSummitRegistrationController::class, 'pdf'])
         ->whereUuid('registration')->middleware('signed')->name('seed-summit.registrations.pdf');
     Route::get('/events/inaugural-seed-investment-summit/registrations/{registration:public_id}/verify-email', [SeedSummitRegistrationController::class, 'showEmailVerification'])

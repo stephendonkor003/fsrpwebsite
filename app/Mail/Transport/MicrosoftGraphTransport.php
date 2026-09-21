@@ -14,7 +14,7 @@ use Throwable;
 
 final class MicrosoftGraphTransport extends AbstractTransport
 {
-    public const MAX_DIRECT_ATTACHMENT_BYTES = 3_000_000;
+    public const DEFAULT_MAX_DIRECT_ATTACHMENT_BYTES = 3_000_000;
 
     public function __construct(private readonly MicrosoftGraphMailService $graph)
     {
@@ -63,6 +63,9 @@ final class MicrosoftGraphTransport extends AbstractTransport
                 'contentType' => $html !== null ? 'HTML' : 'Text',
                 'content' => $body,
             ],
+            'from' => [
+                'emailAddress' => self::emailAddress($email->getFrom()[0]),
+            ],
             'toRecipients' => $this->recipients($email->getTo()),
         ];
 
@@ -90,10 +93,17 @@ final class MicrosoftGraphTransport extends AbstractTransport
     private function assertConfiguredSender(Email $email): void
     {
         $configuredSender = (string) config('services.microsoft_graph.from_address');
+        $from = $email->getFrom();
 
-        foreach ($email->getFrom() as $from) {
+        if (count($from) !== 1) {
+            throw new TransportException(
+                'Microsoft Graph mail requires exactly one From address.',
+            );
+        }
+
+        foreach ($from as $address) {
             if ($configuredSender === ''
-                || strcasecmp($from->getAddress(), $configuredSender) !== 0) {
+                || strcasecmp($address->getAddress(), $configuredSender) !== 0) {
                 throw new TransportException(
                     'The email From address must match the configured Microsoft Graph sender mailbox.',
                 );
@@ -108,14 +118,20 @@ final class MicrosoftGraphTransport extends AbstractTransport
     private function recipients(array $addresses): array
     {
         return array_map(static function (Address $address): array {
-            $emailAddress = ['address' => $address->getAddress()];
-
-            if ($address->getName() !== '') {
-                $emailAddress['name'] = $address->getName();
-            }
-
-            return ['emailAddress' => $emailAddress];
+            return ['emailAddress' => self::emailAddress($address)];
         }, $addresses);
+    }
+
+    /** @return array<string, string> */
+    private static function emailAddress(Address $address): array
+    {
+        $emailAddress = ['address' => $address->getAddress()];
+
+        if ($address->getName() !== '') {
+            $emailAddress['name'] = $address->getName();
+        }
+
+        return $emailAddress;
     }
 
     /**
@@ -126,14 +142,21 @@ final class MicrosoftGraphTransport extends AbstractTransport
     {
         $attachments = [];
         $totalBytes = 0;
+        $maximumBytes = max(
+            1,
+            (int) config(
+                'services.microsoft_graph.max_attachment_bytes',
+                self::DEFAULT_MAX_DIRECT_ATTACHMENT_BYTES,
+            ),
+        );
 
         foreach ($parts as $part) {
             $body = $this->bodyToString($part->getBody()) ?? '';
             $totalBytes += strlen($body);
 
-            if ($totalBytes >= self::MAX_DIRECT_ATTACHMENT_BYTES) {
+            if ($totalBytes >= $maximumBytes) {
                 throw new TransportException(
-                    'Microsoft Graph JSON attachments must total less than 3 MB. Use a draft and upload session for larger attachments.',
+                    "Microsoft Graph JSON attachments must total less than {$maximumBytes} bytes. Use a draft and upload session for larger attachments.",
                 );
             }
 

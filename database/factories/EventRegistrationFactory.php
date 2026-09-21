@@ -55,6 +55,7 @@ class EventRegistrationFactory extends Factory
             'data_protection_accepted_at' => now(),
             'attendance_confirmed_at' => now(),
             'confirmation_email_status' => EventRegistration::EMAIL_PENDING,
+            'receipt_email_status' => EventRegistration::EMAIL_PENDING,
         ];
     }
 }

@@ -140,6 +140,12 @@
                     @if($pdfUrl)
                         <a class="seed-button seed-button-gold" href="{{ $pdfUrl }}" download>Download PDF @include('site.partials.icon', ['name' => 'download'])</a>
                     @endif
+                    @if(($canRetryEmail ?? false) && ($resendEmailUrl ?? null))
+                        <form method="POST" action="{{ $resendEmailUrl }}">
+                            @csrf
+                            <button class="seed-button seed-button-secondary" type="submit">Resend verification email</button>
+                        </form>
+                    @endif
                 </div>
 
                 <dl class="seed-confirmation-event-facts">

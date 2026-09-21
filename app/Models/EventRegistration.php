@@ -63,6 +63,10 @@ use Illuminate\Support\Str;
     'confirmation_email_queued_at',
     'confirmation_email_sent_at',
     'confirmation_email_failed_at',
+    'receipt_email_status',
+    'receipt_email_queued_at',
+    'receipt_email_sent_at',
+    'receipt_email_failed_at',
 ])]
 class EventRegistration extends Model
 {
@@ -128,6 +132,15 @@ class EventRegistration extends Model
     public static function emailHash(string $email): string
     {
         return hash_hmac('sha256', Str::lower(trim($email)), (string) config('app.key'));
+    }
+
+    public function hasVerifiedOfficialEmail(): bool
+    {
+        return $this->official_email_verified_at !== null
+            && is_string($this->official_email_hash)
+            && $this->official_email_hash !== ''
+            && is_string($this->verified_email_hash)
+            && hash_equals($this->official_email_hash, $this->verified_email_hash);
     }
 
     /** @return Builder<EventRegistration> */
@@ -197,6 +210,9 @@ class EventRegistration extends Model
             'confirmation_email_queued_at' => 'datetime',
             'confirmation_email_sent_at' => 'datetime',
             'confirmation_email_failed_at' => 'datetime',
+            'receipt_email_queued_at' => 'datetime',
+            'receipt_email_sent_at' => 'datetime',
+            'receipt_email_failed_at' => 'datetime',
         ];
     }
 }

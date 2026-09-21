@@ -2,6 +2,8 @@
 
 namespace Tests\Feature\Mail;
 
+use App\Mail\SeedSummitRegistrationReceipt;
+use App\Models\EventRegistration;
 use App\Services\Mail\MicrosoftGraphMailException;
 use App\Services\Mail\MicrosoftGraphMailService;
 use Illuminate\Http\Client\Request;
@@ -116,7 +118,7 @@ INI;
             'cache.default' => 'array',
             'mail.default' => 'graph',
             'mail.from.address' => 'Noreply-AUCATTP@africanunion.org',
-            'mail.from.name' => 'SEED SUBMIT',
+            'mail.from.name' => 'Inaugural Seed Investment Summit',
             'queue.default' => 'sync',
             'services.microsoft_graph' => [
                 'tenant_id' => '11111111-1111-1111-1111-111111111111',
@@ -128,6 +130,8 @@ INI;
                 'base_url' => 'https://graph.microsoft.com/v1.0',
                 'connect_timeout' => 1,
                 'timeout' => 2,
+                'token_expiry_buffer' => 120,
+                'max_attachment_bytes' => 3_000_000,
                 'certificate_expiry_warning_days' => 0,
             ],
         ]);
@@ -164,6 +168,10 @@ INI;
                     'contentType' => 'HTML',
                     'content' => '<p>Registration received.</p>',
                 ]
+                && ($message['from']['emailAddress'] ?? null) === [
+                    'address' => 'Noreply-AUCATTP@africanunion.org',
+                    'name' => 'Inaugural Seed Investment Summit',
+                ]
                 && ($message['toRecipients'][0]['emailAddress'] ?? null) === [
                     'address' => 'delegate@example.test',
                     'name' => 'Delegate Name',
@@ -174,6 +182,60 @@ INI;
                 && ($message['attachments'][0]['name'] ?? null) === 'agenda.txt'
                 && ($message['attachments'][0]['contentBytes'] ?? null) === base64_encode('agenda');
         });
+    }
+
+    public function test_verified_receipt_maps_the_inline_logo_and_pdf_attachment_to_graph(): void
+    {
+        $this->fakeAcceptedGraphRequest();
+        $registration = new EventRegistration([
+            'public_id' => 'f66a48aa-7efe-4f2d-a95e-e5f70af93057',
+            'title' => 'Dr',
+            'first_name' => 'Ama',
+            'surname' => 'Mensah',
+            'event_title' => 'Inaugural Seed Investment Summit',
+            'event_venue' => 'Palazzo Convention Centre, Ezulwini, Eswatini',
+            'event_start_at' => '2026-10-05 09:00:00',
+            'event_end_at' => '2026-10-07 17:00:00',
+        ]);
+        $pdf = '%PDF-1.4 test registration copy';
+
+        Mail::mailer('graph')
+            ->to('delegate@example.test')
+            ->send(new SeedSummitRegistrationReceipt($registration, $pdf));
+
+        Http::assertSent(function (Request $request) use ($registration, $pdf): bool {
+            if (! str_contains($request->url(), '/sendMail')) {
+                return false;
+            }
+
+            $attachments = collect($request->data()['message']['attachments'] ?? []);
+            $logo = $attachments->firstWhere('name', 'african-union-logo.png');
+            $registrationCopy = $attachments->firstWhere(
+                'name',
+                'seed-summit-registration-'.$registration->public_id.'.pdf',
+            );
+
+            return $attachments->count() === 2
+                && ($logo['isInline'] ?? null) === true
+                && is_string($logo['contentId'] ?? null)
+                && ($registrationCopy['contentType'] ?? null) === 'application/pdf'
+                && ($registrationCopy['contentBytes'] ?? null) === base64_encode($pdf);
+        });
+    }
+
+    public function test_graph_configuration_uses_the_canonical_environment_contract(): void
+    {
+        $mailConfiguration = (string) file_get_contents(config_path('mail.php'));
+        $serviceConfiguration = (string) file_get_contents(config_path('services.php'));
+        $exampleEnvironment = (string) file_get_contents(base_path('.env.example'));
+
+        $this->assertStringContainsString("env('MAIL_FROM_ADDRESS'", $mailConfiguration);
+        $this->assertStringContainsString("env('MAIL_FROM_NAME'", $mailConfiguration);
+        $this->assertStringContainsString("env('MICROSOFT_GRAPH_FROM_ADDRESS'", $serviceConfiguration);
+        $this->assertStringContainsString("env('MICROSOFT_GRAPH_TOKEN_EXPIRY_BUFFER'", $serviceConfiguration);
+        $this->assertStringContainsString("env('MICROSOFT_GRAPH_MAX_ATTACHMENT_BYTES'", $serviceConfiguration);
+        $this->assertStringNotContainsString('MICROSOFT_MAIL_FROM', $mailConfiguration.$serviceConfiguration.$exampleEnvironment);
+        $this->assertStringContainsString('MAIL_FROM_NAME="Inaugural Seed Investment Summit"', $exampleEnvironment);
     }
 
     public function test_client_assertion_is_short_lived_rs256_and_token_request_has_no_secret(): void
@@ -228,6 +290,34 @@ INI;
         $this->assertIsString($encrypted);
         $this->assertNotSame('sensitive-token', $encrypted);
         $this->assertSame('sensitive-token', Crypt::decryptString($encrypted));
+    }
+
+    public function test_configured_token_expiry_buffer_controls_cache_lifetime(): void
+    {
+        config()->set('services.microsoft_graph.token_expiry_buffer', 120);
+        $tokenRequests = 0;
+
+        Http::fake(function (Request $request) use (&$tokenRequests) {
+            if (str_contains($request->url(), 'login.microsoftonline.com')) {
+                $tokenRequests++;
+
+                return Http::response([
+                    'access_token' => "token-{$tokenRequests}",
+                    'expires_in' => 300,
+                ]);
+            }
+
+            return Http::response(status: 202);
+        });
+
+        $service = app(MicrosoftGraphMailService::class);
+        $service->send(['subject' => 'First']);
+        $this->travel(179)->seconds();
+        $service->send(['subject' => 'Second']);
+        $this->travel(2)->seconds();
+        $service->send(['subject' => 'Third']);
+
+        $this->assertSame(2, $tokenRequests);
     }
 
     public function test_http_401_forgets_the_token_and_retries_once(): void
@@ -338,21 +428,41 @@ INI;
 
     public function test_transport_rejects_attachments_at_the_direct_upload_limit(): void
     {
+        config()->set('services.microsoft_graph.max_attachment_bytes', 12);
         Http::fake();
 
         $this->expectException(TransportException::class);
-        $this->expectExceptionMessage('Microsoft Graph JSON attachments must total less than 3 MB.');
+        $this->expectExceptionMessage('Microsoft Graph JSON attachments must total less than 12 bytes.');
 
         Mail::mailer('graph')->html('<p>Attachment test.</p>', function ($message): void {
             $message
                 ->to('delegate@example.test')
                 ->subject('Attachment test')
                 ->attachData(
-                    str_repeat('x', 3_000_000),
+                    str_repeat('x', 12),
                     'oversized.txt',
                     ['mime' => 'text/plain'],
                 );
         });
+    }
+
+    public function test_graph_service_rejects_an_oversized_json_request_before_http(): void
+    {
+        Http::fake();
+
+        try {
+            app(MicrosoftGraphMailService::class)->send([
+                'body' => [
+                    'contentType' => 'Text',
+                    'content' => str_repeat('x', MicrosoftGraphMailService::MAX_REQUEST_BYTES),
+                ],
+            ]);
+            $this->fail('An oversized Microsoft Graph request should be rejected.');
+        } catch (MicrosoftGraphMailException $exception) {
+            $this->assertStringContainsString('must be smaller than 4 MB', $exception->getMessage());
+        }
+
+        Http::assertNothingSent();
     }
 
     public function test_graph_mail_command_validates_the_recipient_without_network_access(): void

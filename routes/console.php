@@ -12,3 +12,7 @@ Artisan::command('inspire', function () {
 Schedule::command('model:prune', [
     '--model' => [EventRegistration::class],
 ])->dailyAt('02:30')->withoutOverlapping();
+
+Schedule::command('seed-summit:reconcile-registration-emails', [
+    '--limit' => 100,
+])->everyFiveMinutes()->withoutOverlapping();

@@ -4,10 +4,10 @@ namespace App\Http\Controllers;
 
 use App\Actions\RegisterSeedSummitDelegate;
 use App\Http\Requests\StoreEventRegistrationRequest;
-use App\Jobs\SendSeedSummitRegistrationConfirmation;
 use App\Models\Event;
 use App\Models\EventRegistration;
 use App\Models\Setting;
+use App\Services\Mail\SeedSummitRegistrationMailDispatcher;
 use App\Support\SeedSummitRegistrationPdf;
 use App\Support\SeedSummitRegistrationSummary;
 use Illuminate\Contracts\Encryption\DecryptException;
@@ -15,13 +15,9 @@ use Illuminate\Database\QueryException;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
-use Illuminate\Support\Facades\Bus;
 use Illuminate\Support\Facades\Crypt;
-use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\URL;
-use Illuminate\Support\Str;
 use JsonException;
-use Throwable;
 
 class SeedSummitRegistrationController extends Controller
 {
@@ -36,6 +32,7 @@ class SeedSummitRegistrationController extends Controller
     public function store(
         StoreEventRegistrationRequest $request,
         RegisterSeedSummitDelegate $register,
+        SeedSummitRegistrationMailDispatcher $mailDispatcher,
     ): RedirectResponse {
         $registration = $register->execute(
             $this->event(),
@@ -50,25 +47,7 @@ class SeedSummitRegistrationController extends Controller
             now()->addMinutes(max(1, (int) config('seed_summit.receipt_link_minutes', 30)))->timestamp,
         );
 
-        try {
-            $registration->update([
-                'confirmation_email_status' => EventRegistration::EMAIL_QUEUED,
-                'confirmation_email_queued_at' => now(),
-            ]);
-
-            Bus::dispatch(
-                new SendSeedSummitRegistrationConfirmation($registration),
-            );
-        } catch (Throwable $exception) {
-            $registration->update([
-                'confirmation_email_status' => EventRegistration::EMAIL_FAILED,
-                'confirmation_email_failed_at' => now(),
-            ]);
-            Log::error('Seed Summit confirmation email could not be queued.', [
-                'exception' => $exception::class,
-                'registration_reference' => $registration->public_id,
-            ]);
-        }
+        $mailDispatcher->queueAcknowledgement($registration);
 
         return redirect()->to($this->signedUrl('seed-summit.registrations.show', $registration));
     }
@@ -78,6 +57,7 @@ class SeedSummitRegistrationController extends Controller
         EventRegistration $registration,
         Request $request,
         SeedSummitRegistrationSummary $summary,
+        SeedSummitRegistrationMailDispatcher $mailDispatcher,
     ): Response {
         $this->ensureSeedSummitRegistration($registration);
         $this->ensureReceiptSession($request, $registration);
@@ -87,8 +67,37 @@ class SeedSummitRegistrationController extends Controller
             'registration' => $registration,
             'summarySections' => $summary->for($registration),
             'pdfUrl' => $this->signedUrl('seed-summit.registrations.pdf', $registration),
-            'emailStatus' => $registration->confirmation_email_status,
+            'emailStatus' => [
+                'status' => $registration->confirmation_email_status,
+                'message' => $request->session()->pull('seed_summit.confirmation_email_message'),
+            ],
+            'canRetryEmail' => $mailDispatcher->canQueueAcknowledgement($registration),
+            'resendEmailUrl' => $this->signedUrl(
+                'seed-summit.registrations.resend-confirmation',
+                $registration,
+            ),
         ]))->withHeaders($this->privateHeaders());
+    }
+
+    public function resendConfirmation(
+        string $locale,
+        EventRegistration $registration,
+        Request $request,
+        SeedSummitRegistrationMailDispatcher $mailDispatcher,
+    ): RedirectResponse {
+        $this->ensureSeedSummitRegistration($registration);
+        $this->ensureReceiptSession($request, $registration);
+
+        $status = $mailDispatcher->queueAcknowledgement($registration);
+        $message = match ($status) {
+            EventRegistration::EMAIL_SENT => 'The verification email has already been sent.',
+            EventRegistration::EMAIL_FAILED => 'The verification email could not be queued. Please try again shortly.',
+            default => 'The verification email is queued for delivery to the official email address.',
+        };
+
+        return redirect()
+            ->to($this->signedUrl('seed-summit.registrations.show', $registration))
+            ->with('seed_summit.confirmation_email_message', $message);
     }
 
     public function pdf(
@@ -106,21 +115,30 @@ class SeedSummitRegistrationController extends Controller
         ]));
     }
 
-    public function showEmailVerification(string $locale, EventRegistration $registration): Response
-    {
+    public function showEmailVerification(
+        string $locale,
+        EventRegistration $registration,
+        SeedSummitRegistrationMailDispatcher $mailDispatcher,
+    ): Response {
         $this->ensureSeedSummitRegistration($registration);
 
         return response()->view('site.seed-summit.email-verified', array_merge($this->sharedViewData(), [
             'event' => $registration->event,
-            'alreadyVerified' => $registration->official_email_verified_at !== null,
+            'alreadyVerified' => $registration->hasVerifiedOfficialEmail(),
+            'verificationSucceeded' => $registration->hasVerifiedOfficialEmail(),
             'verificationCompleted' => false,
+            'receiptEmailStatus' => $registration->receipt_email_status,
+            'canRetryReceiptEmail' => $mailDispatcher->canQueueReceipt($registration),
         ]))->withHeaders($this->privateHeaders());
     }
 
-    public function verifyEmail(string $locale, EventRegistration $registration): Response
-    {
+    public function verifyEmail(
+        string $locale,
+        EventRegistration $registration,
+        SeedSummitRegistrationMailDispatcher $mailDispatcher,
+    ): Response {
         $this->ensureSeedSummitRegistration($registration);
-        $alreadyVerified = false;
+        $alreadyVerified = $registration->hasVerifiedOfficialEmail();
 
         if ($registration->official_email_verified_at === null) {
             try {
@@ -129,7 +147,7 @@ class SeedSummitRegistrationController extends Controller
                     'verified_email_hash' => $registration->official_email_hash,
                 ]);
             } catch (QueryException $exception) {
-                if (! Str::contains(Str::lower($exception->getMessage()), 'verified_email_hash')) {
+                if (! $this->isVerifiedEmailConflict($exception, $registration)) {
                     throw $exception;
                 }
 
@@ -138,11 +156,38 @@ class SeedSummitRegistrationController extends Controller
             }
         }
 
+        $registration->refresh();
+        $verificationSucceeded = $registration->hasVerifiedOfficialEmail();
+        $receiptEmailStatus = $verificationSucceeded
+            ? $mailDispatcher->queueReceipt($registration)
+            : $registration->receipt_email_status;
+        $registration->refresh();
+
         return response()->view('site.seed-summit.email-verified', array_merge($this->sharedViewData(), [
             'event' => $registration->event,
             'alreadyVerified' => $alreadyVerified,
+            'verificationSucceeded' => $verificationSucceeded,
             'verificationCompleted' => true,
+            'receiptEmailStatus' => $receiptEmailStatus,
+            'canRetryReceiptEmail' => $mailDispatcher->canQueueReceipt($registration),
         ]))->withHeaders($this->privateHeaders());
+    }
+
+    private function isVerifiedEmailConflict(
+        QueryException $exception,
+        EventRegistration $registration,
+    ): bool {
+        $sqlState = (string) ($exception->errorInfo[0] ?? $exception->getCode());
+
+        if (! in_array($sqlState, ['23000', '23505'], true)) {
+            return false;
+        }
+
+        return EventRegistration::query()
+            ->where('event_id', $registration->event_id)
+            ->where('verified_email_hash', $registration->official_email_hash)
+            ->whereKeyNot($registration->getKey())
+            ->exists();
     }
 
     private function event(): Event

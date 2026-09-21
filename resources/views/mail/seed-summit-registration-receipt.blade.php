@@ -3,10 +3,10 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Confirm your email - {{ $eventTitle }}</title>
+    <title>Registration confirmed - {{ $eventTitle }}</title>
 </head>
 <body style="margin:0;padding:0;background:#f5f0e5;color:#173b2c;font-family:Arial,'Segoe UI',sans-serif;line-height:1.6;">
-    <div style="display:none;max-height:0;overflow:hidden;opacity:0;color:transparent;">Confirm your official email to receive your complete registration PDF.</div>
+    <div style="display:none;max-height:0;overflow:hidden;opacity:0;color:transparent;">Your official email is confirmed and your complete registration PDF is attached.</div>
     <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="width:100%;background:#f5f0e5;">
         <tr>
             <td align="center" style="padding:30px 14px;">
@@ -20,7 +20,7 @@
                                     </td>
                                     <td valign="top">
                                         <p style="margin:0 0 6px;color:#f0cf72;font-size:11px;font-weight:700;letter-spacing:1.6px;text-transform:uppercase;">African Union &bull; CAADP</p>
-                                        <h1 style="margin:0;font-size:27px;line-height:1.18;">Registration received</h1>
+                                        <h1 style="margin:0;font-size:27px;line-height:1.18;">Email confirmed</h1>
                                         <p style="margin:9px 0 0;color:#d8e8de;font-size:15px;">{{ $eventTitle }}</p>
                                     </td>
                                 </tr>
@@ -32,9 +32,9 @@
                     </tr>
                     <tr>
                         <td style="padding:32px 34px 22px;">
-                            <p style="margin:0 0 17px;font-size:17px;font-weight:700;color:#173b2c;">Thank you for registering.</p>
-                            <p style="margin:0 0 17px;">We received a delegate registration for the {{ $eventTitle }} using this official email address.</p>
-                            <p style="margin:0 0 24px;color:#52685d;">To protect the personal and passport information in the registration, please confirm that you control this email address. Once confirmed, we will send a separate confirmation email with the complete registration PDF attached.</p>
+                            <p style="margin:0 0 17px;font-size:17px;">Dear {{ $delegateName }},</p>
+                            <p style="margin:0 0 17px;">Your official email has been confirmed. Thank you for registering for the {{ $eventTitle }}.</p>
+                            <p style="margin:0 0 24px;color:#52685d;">A PDF copy of the complete information submitted with your registration is attached to this email for your records.</p>
 
                             <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="margin:0 0 24px;background:#edf5ef;border:1px solid #d2e3d7;border-radius:10px;">
                                 <tr>
@@ -43,7 +43,7 @@
                                 </tr>
                             </table>
 
-                            <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="margin:0 0 26px;border-collapse:collapse;">
+                            <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="margin:0 0 24px;border-collapse:collapse;">
                                 <tr>
                                     <td style="width:105px;padding:9px 0;color:#6a7b72;font-size:13px;border-bottom:1px solid #e4ebe6;">Date</td>
                                     <td style="padding:9px 0;color:#173b2c;font-size:14px;font-weight:700;border-bottom:1px solid #e4ebe6;">{{ $eventDate }}</td>
@@ -54,23 +54,25 @@
                                 </tr>
                             </table>
 
-                            <table role="presentation" cellspacing="0" cellpadding="0" border="0" align="center" style="margin:0 auto 22px;">
+                            <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="margin:0 0 20px;background:#063f2d;border-radius:11px;color:#ffffff;">
                                 <tr>
-                                    <td align="center" bgcolor="#087443" style="border-radius:26px;">
-                                        <a href="{{ $verificationUrl }}" style="display:inline-block;padding:14px 25px;color:#ffffff;font-size:14px;font-weight:800;text-decoration:none;">Confirm official email</a>
+                                    <td width="52" style="padding:17px 0 17px 18px;color:#f0cf72;font-size:19px;font-weight:800;text-align:center;">PDF</td>
+                                    <td style="padding:17px 18px;">
+                                        <strong style="display:block;font-size:15px;">Complete registration copy attached</strong>
+                                        <span style="display:block;color:#d8e8de;font-size:12px;">Keep this document secure; it contains personal and identity information.</span>
                                     </td>
                                 </tr>
                             </table>
 
-                            <p style="margin:0 0 18px;text-align:center;color:#6a7b72;font-size:12px;">This secure confirmation link expires in 7 days.</p>
-                            <p style="margin:0;padding:15px 17px;color:#655323;background:#fff8e6;border-left:4px solid #bf9226;font-size:13px;"><strong>Important:</strong> This acknowledges receipt of the registration; it does not by itself confirm accreditation, travel, visa, or accommodation arrangements.</p>
+                            <p style="margin:0 0 18px;padding:15px 17px;color:#655323;background:#fff8e6;border-left:4px solid #bf9226;font-size:13px;"><strong>Privacy notice:</strong> Do not forward the attached PDF. Store it securely and delete it when it is no longer needed.</p>
+                            <p style="margin:0;color:#52685d;font-size:13px;">This confirms receipt of your registration record. Any accreditation, visa, travel, accommodation, or programme arrangements will be communicated separately by the organisers.</p>
                         </td>
                     </tr>
                     <tr>
                         <td style="padding:23px 34px 28px;background:#f4f7f4;color:#64756b;font-size:12px;border-top:1px solid #e2e9e3;">
                             <p style="margin:0 0 5px;color:#234d39;font-weight:800;letter-spacing:.5px;">OFFICE OF THE COMMISSIONER - ARBE</p>
                             <p style="margin:0 0 10px;">African Union Commission &bull; Inaugural Seed Investment Summit</p>
-                            <p style="margin:0;">This is an automated service message. Please do not forward the confirmation link.</p>
+                            <p style="margin:0;">This is an automated confirmation message.</p>
                         </td>
                     </tr>
                 </table>

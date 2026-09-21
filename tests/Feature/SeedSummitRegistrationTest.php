@@ -3,7 +3,9 @@
 namespace Tests\Feature;
 
 use App\Jobs\SendSeedSummitRegistrationConfirmation;
+use App\Jobs\SendSeedSummitRegistrationReceipt;
 use App\Mail\SeedSummitRegistrationConfirmation;
+use App\Mail\SeedSummitRegistrationReceipt;
 use App\Models\Event;
 use App\Models\EventRegistration;
 use App\Support\SeedSummitRegistrationPdf;
@@ -75,6 +77,7 @@ class SeedSummitRegistrationTest extends TestCase
         $this->assertSame('delegate@agriculture.gov.gh', $registration->official_email);
         $this->assertSame('P1234567', $registration->passport_number);
         $this->assertSame(EventRegistration::EMAIL_QUEUED, $registration->confirmation_email_status);
+        $this->assertSame(EventRegistration::EMAIL_PENDING, $registration->receipt_email_status);
         $this->assertNotSame(
             'P1234567',
             DB::table('event_registrations')->where('id', $registration->id)->value('passport_number'),
@@ -460,6 +463,11 @@ class SeedSummitRegistrationTest extends TestCase
     {
         Mail::fake();
         $registration = EventRegistration::factory()->for($this->event)->create([
+            'first_name' => 'PrivateFirstName',
+            'surname' => 'PrivateSurname',
+            'organisation' => 'Private Organisation',
+            'member_state' => 'Ghana',
+            'delegation_capacity' => 'Delegate',
             'national_id_number' => 'GHA-PRIVATE-ID',
             'passport_number' => 'PRIVATE-PASSPORT',
             'mobile_number' => '+233 20 999 9999',
@@ -476,15 +484,40 @@ class SeedSummitRegistrationTest extends TestCase
         Mail::assertSent(SeedSummitRegistrationConfirmation::class, 1);
         $this->assertSame(EventRegistration::EMAIL_SENT, $registration->fresh()->confirmation_email_status);
 
-        $html = (new SeedSummitRegistrationConfirmation($registration))->render();
+        $mail = new SeedSummitRegistrationConfirmation($registration);
+        $html = $mail->render();
+        $content = $mail->content();
+        $text = view($content->text, $content->with)->render();
         $this->assertStringContainsString($registration->public_id, $html);
+        $this->assertStringNotContainsString('PrivateFirstName', $html);
+        $this->assertStringNotContainsString('PrivateSurname', $html);
+        $this->assertStringNotContainsString('Private Organisation', $html);
         $this->assertStringNotContainsString('GHA-PRIVATE-ID', $html);
         $this->assertStringNotContainsString('PRIVATE-PASSPORT', $html);
         $this->assertStringNotContainsString('+233 20 999 9999', $html);
         $this->assertStringNotContainsString('private@example.test', $html);
         $this->assertStringContainsString('/verify-email?', $html);
+        $this->assertStringContainsString('Resilient Seed Systems for a Food Secure Africa', $html);
+        $this->assertStringContainsString('alt="African Union"', $html);
         $this->assertStringNotContainsString('/pdf?', $html);
         $this->assertStringNotContainsString('View registration', $html);
+        $this->assertStringContainsString('&signature=', $text);
+        $this->assertStringNotContainsString('&amp;signature=', $text);
+        $this->assertStringContainsString('Resilient Seed Systems for a Food Secure Africa', $text);
+        $this->assertSame([], (new SeedSummitRegistrationConfirmation($registration))->attachments());
+    }
+
+    public function test_mail_job_timeout_lease_and_database_retry_window_are_safely_ordered(): void
+    {
+        $registration = EventRegistration::factory()->for($this->event)->create();
+        $jobTimeout = (new SendSeedSummitRegistrationConfirmation($registration))->timeout;
+        $leaseSeconds = (int) config('seed_summit.email_send_lease_seconds');
+        $retryAfter = (int) config('queue.connections.database.retry_after');
+
+        $this->assertSame(170, $jobTimeout);
+        $this->assertSame(170, (new SendSeedSummitRegistrationReceipt($registration))->timeout);
+        $this->assertGreaterThan($jobTimeout, $leaseSeconds);
+        $this->assertGreaterThan($leaseSeconds, $retryAfter);
     }
 
     public function test_confirmation_job_releases_a_fresh_sending_claim_instead_of_losing_the_email(): void
@@ -508,7 +541,9 @@ class SeedSummitRegistrationTest extends TestCase
         Mail::fake();
         $registration = EventRegistration::factory()->for($this->event)->create([
             'confirmation_email_status' => EventRegistration::EMAIL_SENDING,
-            'confirmation_email_queued_at' => now()->subSeconds(90),
+            'confirmation_email_queued_at' => now()->subSeconds(
+                (int) config('seed_summit.email_send_lease_seconds') + 1,
+            ),
         ]);
 
         (new SendSeedSummitRegistrationConfirmation($registration))->handle();
@@ -517,8 +552,262 @@ class SeedSummitRegistrationTest extends TestCase
         $this->assertSame(EventRegistration::EMAIL_SENT, $registration->fresh()->confirmation_email_status);
     }
 
+    public function test_delegate_can_retry_a_failed_verification_email_from_the_private_receipt(): void
+    {
+        Queue::fake();
+        $registration = EventRegistration::factory()->for($this->event)->create([
+            'confirmation_email_status' => EventRegistration::EMAIL_FAILED,
+            'confirmation_email_failed_at' => now(),
+        ]);
+        $receiptSession = [
+            'seed_summit.receipts.'.$registration->public_id => now()->addMinutes(30)->timestamp,
+        ];
+        $showUrl = URL::temporarySignedRoute(
+            'seed-summit.registrations.show',
+            now()->addMinutes(30),
+            ['locale' => 'en', 'registration' => $registration],
+        );
+        $resendUrl = URL::temporarySignedRoute(
+            'seed-summit.registrations.resend-confirmation',
+            now()->addMinutes(30),
+            ['locale' => 'en', 'registration' => $registration],
+        );
+
+        $this->withSession($receiptSession)
+            ->get($showUrl)
+            ->assertOk()
+            ->assertSee('Resend verification email')
+            ->assertSee('/resend-confirmation?', false);
+
+        $this->post($resendUrl)->assertRedirect();
+
+        $registration->refresh();
+        $this->assertSame(EventRegistration::EMAIL_QUEUED, $registration->confirmation_email_status);
+        $this->assertNull($registration->confirmation_email_failed_at);
+        Queue::assertPushed(SendSeedSummitRegistrationConfirmation::class, 1);
+    }
+
+    public function test_reconciliation_recovers_pending_and_stale_registration_emails(): void
+    {
+        Queue::fake();
+        $pendingVerified = EventRegistration::factory()->for($this->event)->create([
+            'official_email' => 'verified@example.test',
+        ]);
+        $pendingVerified->update([
+            'official_email_verified_at' => now(),
+            'verified_email_hash' => $pendingVerified->official_email_hash,
+        ]);
+        $staleAcknowledgement = EventRegistration::factory()->for($this->event)->create([
+            'confirmation_email_status' => EventRegistration::EMAIL_QUEUED,
+            'confirmation_email_queued_at' => now()->subSeconds(
+                (int) config('seed_summit.email_dispatch_stale_seconds') + 1,
+            ),
+        ]);
+        $freshAcknowledgement = EventRegistration::factory()->for($this->event)->create([
+            'confirmation_email_status' => EventRegistration::EMAIL_QUEUED,
+            'confirmation_email_queued_at' => now(),
+        ]);
+
+        $this->artisan('seed-summit:reconcile-registration-emails')
+            ->assertSuccessful();
+
+        Queue::assertPushed(SendSeedSummitRegistrationConfirmation::class, 2);
+        Queue::assertPushed(
+            SendSeedSummitRegistrationConfirmation::class,
+            fn (SendSeedSummitRegistrationConfirmation $job): bool => $job->registration->is($pendingVerified),
+        );
+        Queue::assertPushed(
+            SendSeedSummitRegistrationConfirmation::class,
+            fn (SendSeedSummitRegistrationConfirmation $job): bool => $job->registration->is($staleAcknowledgement),
+        );
+        Queue::assertNotPushed(
+            SendSeedSummitRegistrationConfirmation::class,
+            fn (SendSeedSummitRegistrationConfirmation $job): bool => $job->registration->is($freshAcknowledgement),
+        );
+        Queue::assertPushed(
+            SendSeedSummitRegistrationReceipt::class,
+            fn (SendSeedSummitRegistrationReceipt $job): bool => $job->registration->is($pendingVerified),
+        );
+        Queue::assertPushed(SendSeedSummitRegistrationReceipt::class, 1);
+    }
+
+    public function test_failed_job_callbacks_do_not_downgrade_a_sent_email(): void
+    {
+        $registration = EventRegistration::factory()->for($this->event)->create([
+            'confirmation_email_status' => EventRegistration::EMAIL_SENT,
+            'confirmation_email_sent_at' => now(),
+            'receipt_email_status' => EventRegistration::EMAIL_SENT,
+            'receipt_email_sent_at' => now(),
+        ]);
+
+        (new SendSeedSummitRegistrationConfirmation($registration))->failed(
+            new \RuntimeException('Stale acknowledgement failure'),
+        );
+        (new SendSeedSummitRegistrationReceipt($registration))->failed(
+            new \RuntimeException('Stale receipt failure'),
+        );
+
+        $registration->refresh();
+        $this->assertSame(EventRegistration::EMAIL_SENT, $registration->confirmation_email_status);
+        $this->assertSame(EventRegistration::EMAIL_SENT, $registration->receipt_email_status);
+        $this->assertNull($registration->confirmation_email_failed_at);
+        $this->assertNull($registration->receipt_email_failed_at);
+    }
+
+    public function test_receipt_job_refuses_to_email_an_unverified_registration(): void
+    {
+        Mail::fake();
+        $registration = EventRegistration::factory()->for($this->event)->create();
+        $mismatchedRegistration = EventRegistration::factory()->for($this->event)->create([
+            'official_email' => 'mismatched@example.test',
+            'official_email_verified_at' => now(),
+            'verified_email_hash' => EventRegistration::emailHash('different@example.test'),
+        ]);
+
+        $this->app->call([
+            new SendSeedSummitRegistrationReceipt($registration),
+            'handle',
+        ]);
+        $this->app->call([
+            new SendSeedSummitRegistrationReceipt($mismatchedRegistration),
+            'handle',
+        ]);
+
+        Mail::assertNothingSent();
+        $this->assertSame(EventRegistration::EMAIL_PENDING, $registration->fresh()->receipt_email_status);
+        $this->assertSame(
+            EventRegistration::EMAIL_PENDING,
+            $mismatchedRegistration->fresh()->receipt_email_status,
+        );
+    }
+
+    public function test_receipt_job_sends_the_complete_pdf_once_after_email_verification(): void
+    {
+        Mail::fake();
+        $registration = EventRegistration::factory()->for($this->event)->create([
+            'first_name' => '<script>alert(1)</script>',
+            'surname' => 'Mensah',
+            'official_email' => 'verified@example.test',
+            'event_start_at' => '2026-10-05 09:00:00',
+            'event_end_at' => '2026-10-07 17:00:00',
+            'event_venue' => 'Palazzo Convention Centre, Ezulwini, Eswatini',
+        ]);
+        $registration->update([
+            'official_email_verified_at' => now(),
+            'verified_email_hash' => $registration->official_email_hash,
+            'receipt_email_status' => EventRegistration::EMAIL_QUEUED,
+            'receipt_email_queued_at' => now(),
+        ]);
+        $pdf = app(SeedSummitRegistrationPdf::class)->render($registration->fresh());
+        $job = new SendSeedSummitRegistrationReceipt($registration);
+
+        $this->app->call([$job, 'handle']);
+        $this->app->call([$job, 'handle']);
+
+        Mail::assertSent(
+            SeedSummitRegistrationReceipt::class,
+            function (SeedSummitRegistrationReceipt $mail) use ($registration, $pdf): bool {
+                $mail->assertHasAttachedData(
+                    $pdf,
+                    'seed-summit-registration-'.$registration->public_id.'.pdf',
+                    ['mime' => 'application/pdf'],
+                );
+
+                return $mail->hasTo('verified@example.test');
+            },
+        );
+        Mail::assertSent(SeedSummitRegistrationReceipt::class, 1);
+        $this->assertSame(EventRegistration::EMAIL_SENT, $registration->fresh()->receipt_email_status);
+        $this->assertNotNull($registration->fresh()->receipt_email_sent_at);
+
+        $this->assertLessThan(
+            (int) config('services.microsoft_graph.max_attachment_bytes', 3_000_000),
+            strlen($pdf),
+        );
+        $mail = new SeedSummitRegistrationReceipt($registration->fresh(), $pdf);
+        $html = $mail->render();
+        $content = $mail->content();
+        $text = view($content->text, $content->with)->render();
+
+        $this->assertStringContainsString('Email confirmed', $html);
+        $this->assertStringContainsString('Complete registration copy attached', $html);
+        $this->assertStringContainsString('OFFICE OF THE COMMISSIONER - ARBE', $html);
+        $this->assertStringContainsString('5-7 October 2026', $html);
+        $this->assertStringContainsString('Resilient Seed Systems for a Food Secure Africa', $html);
+        $this->assertStringContainsString(
+            $this->pdfHex('Inaugural Seed Investment Summit Registration'),
+            $pdf,
+        );
+        $this->assertStringNotContainsString('<script>alert(1)</script>', $html);
+        $this->assertStringContainsString('&lt;script&gt;alert(1)&lt;/script&gt;', $html);
+        $this->assertStringContainsString('alert(1) Mensah', $text);
+        $this->assertStringNotContainsString('&lt;script&gt;', $text);
+        $mail->assertHasAttachedData(
+            $pdf,
+            'seed-summit-registration-'.$registration->public_id.'.pdf',
+            ['mime' => 'application/pdf'],
+        );
+    }
+
+    public function test_receipt_job_releases_a_fresh_sending_claim(): void
+    {
+        Mail::fake();
+        $registration = EventRegistration::factory()->for($this->event)->create([
+            'official_email' => 'verified@example.test',
+        ]);
+        $registration->update([
+            'official_email_verified_at' => now(),
+            'verified_email_hash' => $registration->official_email_hash,
+            'receipt_email_status' => EventRegistration::EMAIL_SENDING,
+            'receipt_email_queued_at' => now(),
+        ]);
+        $job = (new SendSeedSummitRegistrationReceipt($registration))->withFakeQueueInteractions();
+
+        $this->app->call([$job, 'handle']);
+
+        $job->assertReleased();
+        Mail::assertNothingSent();
+        $this->assertSame(EventRegistration::EMAIL_SENDING, $registration->fresh()->receipt_email_status);
+    }
+
+    public function test_verified_registration_can_requeue_a_failed_receipt_email(): void
+    {
+        Queue::fake();
+        $registration = EventRegistration::factory()->for($this->event)->create([
+            'official_email' => 'verified@example.test',
+        ]);
+        $registration->update([
+            'official_email_verified_at' => now(),
+            'verified_email_hash' => $registration->official_email_hash,
+            'receipt_email_status' => EventRegistration::EMAIL_FAILED,
+            'receipt_email_failed_at' => now(),
+        ]);
+        $url = URL::temporarySignedRoute(
+            'seed-summit.registrations.verify-email.show',
+            now()->addHour(),
+            ['locale' => 'en', 'registration' => $registration],
+        );
+
+        $this->get($url)
+            ->assertOk()
+            ->assertSee('Retry PDF email')
+            ->assertSee('method="POST"', false);
+        Queue::assertNothingPushed();
+
+        $this->post($url)
+            ->assertOk()
+            ->assertSee('Official email already confirmed')
+            ->assertSee('complete registration PDF is being prepared');
+
+        $registration->refresh();
+        $this->assertSame(EventRegistration::EMAIL_QUEUED, $registration->receipt_email_status);
+        $this->assertNull($registration->receipt_email_failed_at);
+        Queue::assertPushed(SendSeedSummitRegistrationReceipt::class, 1);
+    }
+
     public function test_signed_email_verification_requires_an_explicit_post_without_exposing_registration_data(): void
     {
+        Queue::fake();
         $registration = EventRegistration::factory()->for($this->event)->create([
             'passport_number' => 'PRIVATE-PASSPORT',
             'mobile_number' => '+233 20 999 9999',
@@ -538,6 +827,7 @@ class SeedSummitRegistrationTest extends TestCase
             ->assertDontSee('+233 20 999 9999');
 
         $this->assertNull($registration->fresh()->official_email_verified_at);
+        Queue::assertNothingPushed();
 
         $this->post($url)
             ->assertOk()
@@ -545,11 +835,22 @@ class SeedSummitRegistrationTest extends TestCase
             ->assertDontSee('PRIVATE-PASSPORT')
             ->assertDontSee('+233 20 999 9999');
 
-        $this->assertNotNull($registration->fresh()->official_email_verified_at);
+        $registration->refresh();
+        $this->assertNotNull($registration->official_email_verified_at);
+        $this->assertTrue($registration->hasVerifiedOfficialEmail());
+        $this->assertSame(EventRegistration::EMAIL_QUEUED, $registration->receipt_email_status);
+        Queue::assertPushed(
+            SendSeedSummitRegistrationReceipt::class,
+            fn (SendSeedSummitRegistrationReceipt $job): bool => $job->registration->is($registration),
+        );
+
+        $this->post($url)->assertOk()->assertSee('Official email already confirmed');
+        Queue::assertPushed(SendSeedSummitRegistrationReceipt::class, 1);
     }
 
     public function test_only_one_registration_can_verify_the_same_official_email_for_an_event(): void
     {
+        Queue::fake();
         $first = EventRegistration::factory()->for($this->event)->create([
             'official_email' => 'delegate@example.test',
         ]);
@@ -567,12 +868,18 @@ class SeedSummitRegistrationTest extends TestCase
             $response = $this->post($url)->assertOk();
 
             if ($registration->is($second)) {
-                $response->assertSee('Official email already confirmed');
+                $response->assertSee('Official email already in use');
             }
         }
 
         $this->assertNotNull($first->fresh()->official_email_verified_at);
         $this->assertNull($second->fresh()->official_email_verified_at);
+        $this->assertSame(EventRegistration::EMAIL_PENDING, $second->fresh()->receipt_email_status);
+        Queue::assertPushed(
+            SendSeedSummitRegistrationReceipt::class,
+            fn (SendSeedSummitRegistrationReceipt $job): bool => $job->registration->is($first),
+        );
+        Queue::assertPushed(SendSeedSummitRegistrationReceipt::class, 1);
     }
 
     public function test_deleting_a_registration_removes_its_private_document_directory(): void

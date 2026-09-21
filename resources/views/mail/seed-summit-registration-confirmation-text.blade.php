@@ -1,61 +1,25 @@
-@php
-    $eventValue = static function (string $key, mixed $fallback = null) use ($event): mixed {
-        $value = null;
-
-        if (is_object($event) && method_exists($event, 'translate')) {
-            $value = $event->translate($key);
-        }
-
-        if ($value === null || $value === '') {
-            $value = data_get($event, $key);
-        }
-
-        if (is_array($value)) {
-            $value = $value['en'] ?? $value['value'] ?? null;
-        }
-
-        return $value === null || $value === '' ? $fallback : $value;
-    };
-    $registrationValue = static fn (string $key, mixed $fallback = null): mixed => data_get($registration, $key, $fallback);
-    $delegateName = trim(implode(' ', array_filter([
-        $registrationValue('title'),
-        $registrationValue('first_name'),
-        $registrationValue('surname'),
-    ])));
-    $delegateName = $delegateName !== '' ? $delegateName : 'Delegate';
-    $eventTitle = (string) $eventValue('title', 'Inaugural Seed Investment Summit');
-    $eventDate = (string) $eventValue('date_display', '5–7 October 2026');
-    $eventVenue = (string) $eventValue('venue', 'Ezulwini, Eswatini');
-    $registrationReference = $registrationValue('public_id', $registrationValue('reference_code', $registrationValue('registration_number', $registrationValue('uuid', $registrationValue('id')))));
-@endphp
 REGISTRATION RECEIVED
-{{ $eventTitle }}
+{!! $eventTitleText !!}
+{!! $eventThemeText !!}
 
-Dear {{ $delegateName }},
+Thank you for registering.
 
-Thank you for registering. We have received your delegate registration for the {{ $eventTitle }}.
+We received a delegate registration for the {!! $eventTitleText !!} using this official email address.
 
-This message confirms receipt only. Please retain it for your records and follow any further accreditation or logistics instructions sent by the organisers.
+To protect the personal and passport information in the registration, confirm that you control this email address. Once confirmed, we will send a separate confirmation email with the complete registration PDF attached.
 
-@if($registrationReference)
-Registration reference: {{ $registrationReference }}
-@endif
-Date: {{ $eventDate }}
-Venue: {{ $eventVenue }}
-@if($registrationValue('organisation'))
-Organisation: {{ $registrationValue('organisation') }}
-@endif
-@if($registrationValue('member_state'))
-Member State: {{ $registrationValue('member_state') }}
-@endif
-@if($registrationValue('delegation_capacity'))
-Delegation Capacity: {{ $registrationValue('delegation_capacity') }}
-@endif
+Registration reference: {!! $registrationReferenceText !!}
+Date: {!! $eventDateText !!}
+Venue: {!! $eventVenueText !!}
 
-Confirm official email: {{ $verificationUrl }}
+Confirm official email: {!! $verificationUrl !!}
 
-For your privacy, the full registration record and PDF are not included in this email. Return to the browser used to register if you still need to download the receipt.
+This secure confirmation link expires in 7 days.
 
-SEED SUMMIT
-Office of the Commissioner — ARBE
+Important: This acknowledges receipt of the registration; it does not by itself confirm accreditation, travel, visa, or accommodation arrangements.
+
+OFFICE OF THE COMMISSIONER - ARBE
 African Union Commission
+Inaugural Seed Investment Summit
+
+This is an automated service message. Please do not forward the confirmation link.

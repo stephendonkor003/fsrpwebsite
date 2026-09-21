@@ -2,15 +2,16 @@
 
 namespace App\Jobs;
 
-use App\Mail\SeedSummitRegistrationConfirmation;
+use App\Mail\SeedSummitRegistrationReceipt;
 use App\Models\EventRegistration;
+use App\Support\SeedSummitRegistrationPdf;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Queue\Queueable;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Mail;
 use Throwable;
 
-class SendSeedSummitRegistrationConfirmation implements ShouldQueue
+class SendSeedSummitRegistrationReceipt implements ShouldQueue
 {
     use Queueable;
 
@@ -23,10 +24,7 @@ class SendSeedSummitRegistrationConfirmation implements ShouldQueue
         $this->afterCommit();
     }
 
-    /**
-     * Execute the job.
-     */
-    public function handle(): void
+    public function handle(SeedSummitRegistrationPdf $pdf): void
     {
         $leaseSeconds = max(200, (int) config('seed_summit.email_send_lease_seconds', 200));
         $claim = DB::transaction(function () use ($leaseSeconds): array {
@@ -34,13 +32,15 @@ class SendSeedSummitRegistrationConfirmation implements ShouldQueue
                 ->lockForUpdate()
                 ->find($this->registration->getKey());
 
-            if ($registration === null || $registration->confirmation_email_status === EventRegistration::EMAIL_SENT) {
+            if ($registration === null
+                || ! $registration->hasVerifiedOfficialEmail()
+                || $registration->receipt_email_status === EventRegistration::EMAIL_SENT) {
                 return ['status' => 'complete'];
             }
 
-            if ($registration->confirmation_email_status === EventRegistration::EMAIL_SENDING
-                && $registration->confirmation_email_queued_at?->isAfter(now()->subSeconds($leaseSeconds))) {
-                $leaseExpiresAt = $registration->confirmation_email_queued_at->addSeconds($leaseSeconds);
+            if ($registration->receipt_email_status === EventRegistration::EMAIL_SENDING
+                && $registration->receipt_email_queued_at?->isAfter(now()->subSeconds($leaseSeconds))) {
+                $leaseExpiresAt = $registration->receipt_email_queued_at->addSeconds($leaseSeconds);
 
                 return [
                     'status' => 'busy',
@@ -49,8 +49,8 @@ class SendSeedSummitRegistrationConfirmation implements ShouldQueue
             }
 
             $registration->update([
-                'confirmation_email_status' => EventRegistration::EMAIL_SENDING,
-                'confirmation_email_queued_at' => now(),
+                'receipt_email_status' => EventRegistration::EMAIL_SENDING,
+                'receipt_email_queued_at' => now(),
             ]);
 
             return ['status' => 'claimed', 'registration' => $registration];
@@ -70,21 +70,23 @@ class SendSeedSummitRegistrationConfirmation implements ShouldQueue
         $registration = $claim['registration'];
 
         try {
+            $pdfContents = $pdf->render($registration);
+
             Mail::to($registration->official_email)->send(
-                new SeedSummitRegistrationConfirmation($registration),
+                new SeedSummitRegistrationReceipt($registration, $pdfContents),
             );
         } catch (Throwable $exception) {
             EventRegistration::query()->whereKey($registration->getKey())->update([
-                'confirmation_email_status' => EventRegistration::EMAIL_QUEUED,
+                'receipt_email_status' => EventRegistration::EMAIL_QUEUED,
             ]);
 
             throw $exception;
         }
 
         $registration->update([
-            'confirmation_email_status' => EventRegistration::EMAIL_SENT,
-            'confirmation_email_sent_at' => now(),
-            'confirmation_email_failed_at' => null,
+            'receipt_email_status' => EventRegistration::EMAIL_SENT,
+            'receipt_email_sent_at' => now(),
+            'receipt_email_failed_at' => null,
         ]);
     }
 
@@ -98,13 +100,13 @@ class SendSeedSummitRegistrationConfirmation implements ShouldQueue
     {
         EventRegistration::query()
             ->whereKey($this->registration->getKey())
-            ->whereIn('confirmation_email_status', [
+            ->whereIn('receipt_email_status', [
                 EventRegistration::EMAIL_QUEUED,
                 EventRegistration::EMAIL_SENDING,
             ])
             ->update([
-                'confirmation_email_status' => EventRegistration::EMAIL_FAILED,
-                'confirmation_email_failed_at' => now(),
+                'receipt_email_status' => EventRegistration::EMAIL_FAILED,
+                'receipt_email_failed_at' => now(),
             ]);
     }
 }

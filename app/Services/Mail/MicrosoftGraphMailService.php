@@ -152,7 +152,11 @@ final class MicrosoftGraphMailService
                 );
             }
 
-            $ttl = max(1, $expiresIn - min(300, max(60, intdiv($expiresIn, 10))));
+            $expiryBuffer = max(
+                0,
+                (int) config('services.microsoft_graph.token_expiry_buffer', 120),
+            );
+            $ttl = max(1, $expiresIn - min($expiryBuffer, $expiresIn - 1));
             Cache::put($cacheKey, Crypt::encryptString($token), now()->addSeconds($ttl));
 
             return $token;
