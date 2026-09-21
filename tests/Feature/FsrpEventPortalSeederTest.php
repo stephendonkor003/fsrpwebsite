@@ -45,7 +45,7 @@ class FsrpEventPortalSeederTest extends TestCase
         $this->assertSame(['2026-09-15', '2026-09-16', '2026-09-17', '2026-09-18'],
             $event->sessions()->orderBy('start_at')->get()->map(fn (Session $session): string => $session->start_at->toDateString())->all());
         $this->assertSame(4, $event->sessions()->where('is_all_day', true)->whereNull('end_at')->count());
-        $this->assertSame(4, Slide::where('is_active', true)->count());
+        $this->assertSame(5, Slide::where('is_active', true)->count());
         $this->assertSame(1, Slide::where('is_active', true)->whereNotNull('video_url')->count());
         $this->assertSame(4, Program::where('is_published', true)->count());
         $this->assertSame(6, Faq::where('is_published', true)->count());
@@ -55,9 +55,9 @@ class FsrpEventPortalSeederTest extends TestCase
         $this->assertDatabaseHas('home_sections', ['key' => 'media', 'is_active' => true]);
         $this->assertDatabaseHas('events', ['id' => $retainedEvent->id, 'is_published' => true]);
         $this->assertDatabaseHas('events', ['slug' => 'continental-digital-trade-lab', 'is_published' => false]);
-        $this->assertDatabaseCount('events', 6);
-        $this->assertDatabaseCount('sessions', 12);
-        $this->assertDatabaseCount('slides', 7);
+        $this->assertDatabaseCount('events', 7);
+        $this->assertDatabaseCount('sessions', 15);
+        $this->assertDatabaseCount('slides', 8);
         $this->assertDatabaseCount('programs', 8);
         $this->assertDatabaseCount('faqs', 14);
         $this->assertDatabaseCount('news_posts', 5);
@@ -79,9 +79,9 @@ class FsrpEventPortalSeederTest extends TestCase
 
         $this->seed(FsrpEventPortalSeeder::class);
 
-        $this->assertDatabaseCount('events', 6);
-        $this->assertDatabaseCount('sessions', 12);
-        $this->assertDatabaseCount('slides', 7);
+        $this->assertDatabaseCount('events', 7);
+        $this->assertDatabaseCount('sessions', 15);
+        $this->assertDatabaseCount('slides', 8);
         $this->assertDatabaseCount('programs', 8);
         $this->assertDatabaseCount('faqs', 14);
         $this->assertDatabaseCount('news_posts', 5);
@@ -109,7 +109,7 @@ class FsrpEventPortalSeederTest extends TestCase
             $this->assertStringContainsString(FsrpEventPortalSeeder::PROGRAMME_PATH, $exception->getMessage());
         }
 
-        $this->assertDatabaseCount('events', 5);
+        $this->assertDatabaseCount('events', 6);
         $this->assertDatabaseCount('event_resources', 0);
         $this->assertDatabaseCount('home_sections', $sectionCount);
         $this->assertSame($siteName, Setting::where('key', 'site_name')->firstOrFail()->value);

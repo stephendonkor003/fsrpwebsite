@@ -5,9 +5,12 @@
     @php
         $heroSlideCount = $slides->count() + count($speakers);
         $speakerSlideOffset = $slides->count();
+        $featuredRegistrationUrl = $featuredEvent?->registrationUrlForLocale($locale);
+        $featuredRegistrationIsExternal = $featuredEvent?->registrationUrlOpensExternally() ?? false;
+        $isSeedSummitHomepage = $featuredEvent?->slug === config('seed_summit.event_slug');
     @endphp
     @if($homeSections->contains('key', 'hero'))
-        <section class="hero fsrp-hero" aria-label="{{ __('ui.home.featured_stories') }}" aria-roledescription="carousel" data-carousel>
+        <section @class(['hero', 'fsrp-hero', 'seed-summit-home-hero' => $isSeedSummitHomepage]) aria-label="{{ __('ui.home.featured_stories') }}" aria-roledescription="carousel" data-carousel>
             <div class="hero-slides">
                 @foreach($slides as $slide)
                     <article class="hero-slide {{ $loop->first ? 'active' : '' }}" data-slide aria-hidden="{{ $loop->first ? 'false' : 'true' }}" @if(! $loop->first) inert @endif>
@@ -21,12 +24,20 @@
                                 <p class="eyebrow eyebrow-light"><span></span>{{ $slide->translate('eyebrow') ?: __('portal.descriptor') }}</p>
                                 @if($loop->first)<h1>{{ $slide->translate('title') }}</h1>@else<h2 class="hero-title">{{ $slide->translate('title') }}</h2>@endif
                                 <p class="hero-summary">{{ $slide->translate('subtitle') }}</p>
+                                @if($isSeedSummitHomepage)
+                                    <div class="seed-summit-hero-facts">
+                                        <span>@include('site.partials.icon', ['name' => 'calendar']){{ $featuredEvent->start_at?->translatedFormat('d') }}–{{ $featuredEvent->end_at?->translatedFormat('d M Y') }}</span>
+                                        <span>@include('site.partials.icon', ['name' => 'location']){{ $featuredEvent->translate('venue') }}</span>
+                                    </div>
+                                @endif
                                 <div class="hero-actions">
                                     <a class="button button-gold" href="{{ $slide->buttonUrlForLocale($locale) ?? route('events.index', $locale) }}">{{ $slide->translate('button_text') ?: __('portal.explore') }} @include('site.partials.icon', ['name' => 'arrow'])</a>
-                                    @if($featuredEvent?->registration_url)
-                                        <a class="button button-outline-light" href="{{ $featuredEvent->registration_url }}" target="_blank" rel="noopener">{{ __('ui.actions.register_now') }} @include('site.partials.icon', ['name' => 'external'])</a>
+                                    @if($featuredRegistrationUrl)
+                                        <a class="button button-outline-light" href="{{ $featuredRegistrationUrl }}" @if($featuredRegistrationIsExternal) target="_blank" rel="noopener" @endif>{{ __('ui.actions.register_now') }} @include('site.partials.icon', ['name' => $featuredRegistrationIsExternal ? 'external' : 'arrow'])</a>
                                     @endif
-                                    <a class="hero-secondary" href="{{ route('resources.index', $locale) }}">@include('site.partials.icon', ['name' => 'download']){{ __('portal.downloads') }}</a>
+                                    @unless($isSeedSummitHomepage)
+                                        <a class="hero-secondary" href="{{ route('resources.index', $locale) }}">@include('site.partials.icon', ['name' => 'download']){{ __('portal.downloads') }}</a>
+                                    @endunless
                                 </div>
                             </div>
                         </div>
@@ -47,8 +58,8 @@
                                 <p class="hero-summary">{{ $speaker['title'] }}</p>
                                 <div class="hero-actions">
                                     <a class="button button-gold" href="{{ route('speakers', $locale) }}">{{ __('ui.sessions.speakers') }} @include('site.partials.icon', ['name' => 'arrow'])</a>
-                                    @if($featuredEvent?->registration_url)
-                                        <a class="button button-outline-light" href="{{ $featuredEvent->registration_url }}" target="_blank" rel="noopener">{{ __('ui.actions.register_now') }} @include('site.partials.icon', ['name' => 'external'])</a>
+                                    @if($featuredRegistrationUrl)
+                                        <a class="button button-outline-light" href="{{ $featuredRegistrationUrl }}" @if($featuredRegistrationIsExternal) target="_blank" rel="noopener" @endif>{{ __('ui.actions.register_now') }} @include('site.partials.icon', ['name' => $featuredRegistrationIsExternal ? 'external' : 'arrow'])</a>
                                     @endif
                                 </div>
                             </div>
@@ -64,16 +75,18 @@
                 @endif
             </div>
             <div class="container hero-bottom">
-                <div class="hero-controls">
-                    <button type="button" data-carousel-prev aria-label="{{ __('ui.common.previous_slide') }}"><svg aria-hidden="true" viewBox="0 0 24 24"><path d="m15 18-6-6 6-6"/></svg></button>
-                    <div class="hero-dots" aria-label="{{ __('ui.common.choose_slide') }}">
-                        @foreach($slides as $slide)<button type="button" data-carousel-dot="{{ $loop->index }}" @class(['active' => $loop->first]) aria-label="{{ __('ui.common.slide_number', ['number' => $loop->iteration]) }}" aria-pressed="{{ $loop->first ? 'true' : 'false' }}"><span></span></button>@endforeach
-                        @foreach($speakers as $speaker)<button type="button" data-carousel-dot="{{ $speakerSlideOffset + $loop->index }}" @class(['active' => $slides->isEmpty() && $loop->first]) aria-label="{{ __('ui.common.slide_number', ['number' => $speakerSlideOffset + $loop->iteration]) }}: {{ $speaker['name'] }}" aria-pressed="{{ $slides->isEmpty() && $loop->first ? 'true' : 'false' }}"><span></span></button>@endforeach
+                @if($heroSlideCount > 1)
+                    <div class="hero-controls">
+                        <button type="button" data-carousel-prev aria-label="{{ __('ui.common.previous_slide') }}"><svg aria-hidden="true" viewBox="0 0 24 24"><path d="m15 18-6-6 6-6"/></svg></button>
+                        <div class="hero-dots" aria-label="{{ __('ui.common.choose_slide') }}">
+                            @foreach($slides as $slide)<button type="button" data-carousel-dot="{{ $loop->index }}" @class(['active' => $loop->first]) aria-label="{{ __('ui.common.slide_number', ['number' => $loop->iteration]) }}" aria-pressed="{{ $loop->first ? 'true' : 'false' }}"><span></span></button>@endforeach
+                            @foreach($speakers as $speaker)<button type="button" data-carousel-dot="{{ $speakerSlideOffset + $loop->index }}" @class(['active' => $slides->isEmpty() && $loop->first]) aria-label="{{ __('ui.common.slide_number', ['number' => $speakerSlideOffset + $loop->iteration]) }}: {{ $speaker['name'] }}" aria-pressed="{{ $slides->isEmpty() && $loop->first ? 'true' : 'false' }}"><span></span></button>@endforeach
+                        </div>
+                        <button type="button" data-carousel-next aria-label="{{ __('ui.common.next_slide') }}"><svg aria-hidden="true" viewBox="0 0 24 24"><path d="m9 18 6-6-6-6"/></svg></button>
+                        <button class="carousel-pause" type="button" data-carousel-pause aria-label="{{ __('portal.pause') }}" data-play-label="{{ __('portal.resume') }}" data-pause-label="{{ __('portal.pause') }}"><svg class="pause-icon" aria-hidden="true" viewBox="0 0 24 24"><path d="M9 5v14M15 5v14"/></svg><svg class="play-icon" aria-hidden="true" viewBox="0 0 24 24"><path d="m8 5 11 7-11 7Z"/></svg></button>
                     </div>
-                    <button type="button" data-carousel-next aria-label="{{ __('ui.common.next_slide') }}"><svg aria-hidden="true" viewBox="0 0 24 24"><path d="m9 18 6-6-6-6"/></svg></button>
-                    <button class="carousel-pause" type="button" data-carousel-pause aria-label="{{ __('portal.pause') }}" data-play-label="{{ __('portal.resume') }}" data-pause-label="{{ __('portal.pause') }}"><svg class="pause-icon" aria-hidden="true" viewBox="0 0 24 24"><path d="M9 5v14M15 5v14"/></svg><svg class="play-icon" aria-hidden="true" viewBox="0 0 24 24"><path d="m8 5 11 7-11 7Z"/></svg></button>
-                </div>
-                <span class="hero-caption">{{ __('portal.photo_credit') }}</span>
+                @endif
+                <span class="hero-caption">{{ $isSeedSummitHomepage ? 'Official event artwork · African Union Inaugural Africa Seed Summit' : __('portal.photo_credit') }}</span>
             </div>
         </section>
         @if($featuredEvent)

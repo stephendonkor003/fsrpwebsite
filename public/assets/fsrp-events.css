@@ -70,10 +70,21 @@
 .hero-slide-speaker .hero-overlay { background: linear-gradient(90deg, #003b29 0%, #003b29f5 38%, #003b29a8 67%, #003b2945 100%); }
 [dir="rtl"] .hero-slide-speaker .hero-overlay { background: linear-gradient(-90deg, #003b29 0%, #003b29f5 38%, #003b29a8 67%, #003b2945 100%); }
 .hero-slide-speaker .hero-summary { max-width: 660px; }
+.seed-summit-home-hero .hero-slide > img { object-position: center 52%; filter: saturate(.88) contrast(.97); }
+.seed-summit-home-hero .hero-overlay { background: linear-gradient(90deg, rgba(0, 39, 27, .97) 0%, rgba(0, 50, 34, .9) 39%, rgba(20, 28, 20, .46) 72%, rgba(20, 14, 8, .24) 100%); }
+[dir="rtl"] .seed-summit-home-hero .hero-overlay { background: linear-gradient(-90deg, rgba(0, 39, 27, .97) 0%, rgba(0, 50, 34, .9) 39%, rgba(20, 28, 20, .46) 72%, rgba(20, 14, 8, .24) 100%); }
+.seed-summit-home-hero .hero-copy { width: min(760px, 78vw); padding: 32px 35px; border: 1px solid rgba(255, 255, 255, .18); border-radius: 15px; background: rgba(0, 43, 30, .54); box-shadow: 0 24px 70px rgba(0, 24, 17, .25); backdrop-filter: blur(8px); }
+.seed-summit-home-hero .hero-copy h1 { margin-bottom: 16px; }
+.seed-summit-home-hero .hero-summary { margin-bottom: 19px; color: #f1f5ed; font-size: 1.15rem; font-weight: 550; }
+.seed-summit-hero-facts { display: flex; flex-wrap: wrap; gap: 10px 22px; margin-bottom: 26px; color: #edf4ed; font-size: .78rem; }
+.seed-summit-hero-facts span { display: inline-flex; align-items: flex-start; gap: 8px; }
+.seed-summit-hero-facts .icon { width: 17px; height: 19px; flex-basis: 17px; color: var(--gold); }
+.seed-summit-home-hero .hero-bottom { justify-content: flex-end; }
 .next-event-bar { background: var(--green-deep); color: white; }
 .next-event-inner { display: flex; align-items: center; gap: 28px; min-height: 83px; }
 .next-event-label { display: flex; align-items: center; gap: 12px; color: var(--gold); font-size: .72rem; font-weight: 700; white-space: nowrap; }
-.next-event-name { flex: 1; padding-inline-start: 27px; border-inline-start: 1px solid #ffffff2c; font-size: .93rem; font-weight: 600; }
+.next-event-name { flex: 1; padding-inline-start: 27px; color: white; border-inline-start: 1px solid #ffffff2c; font-size: .93rem; font-weight: 600; }
+.next-event-name:hover { color: var(--gold); }
 .next-event-date { display: flex; align-items: center; gap: 9px; color: #d8e8de; font-size: .8rem; white-space: nowrap; }
 .next-event-date .icon { width: 17px; }
 .next-event-arrow { border: 1px solid #ffffff40; padding: 10px; border-radius: 50%; }
@@ -483,6 +494,37 @@
 .caadp-contact-groups h3 { margin: 0 0 14px; font-size: .8rem; color: var(--gold); }
 .caadp-contact-groups a { display: block; margin-bottom: 10px; color: #ffffffe0; font-size: .76rem; }
 .caadp-contact-groups p { color: #ffffff8f; font-size: .68rem; line-height: 1.7; }
+
+/* Seed Summit facts sourced from the official concept note. */
+.seed-summit-information { overflow: clip; background: linear-gradient(180deg, #f7f2e7 0%, #fbfaf5 42%, #eef5ec 100%); scroll-margin-top: 110px; }
+.seed-summit-information-heading { align-items: end; }
+.seed-summit-information-heading > p { max-width: 560px; color: var(--ink-soft); line-height: 1.8; }
+.seed-summit-fact-strip { display: grid; grid-template-columns: .85fr .65fr 1.35fr; margin: 34px 0 18px; overflow: hidden; color: white; background: var(--green-deep); border: 1px solid rgba(255, 255, 255, .1); border-radius: 12px; box-shadow: 0 16px 42px rgba(0, 54, 36, .12); }
+.seed-summit-fact-strip > div { min-width: 0; padding: 25px 28px; border-inline-end: 1px solid rgba(255, 255, 255, .16); }
+.seed-summit-fact-strip > div:last-child { border-inline-end: 0; }
+.seed-summit-fact-strip span, .seed-summit-fact-strip strong { display: block; }
+.seed-summit-fact-strip span { margin-bottom: 7px; color: var(--gold); font-size: .65rem; font-weight: 800; letter-spacing: .1em; text-transform: uppercase; }
+.seed-summit-fact-strip strong { color: white; font-size: .94rem; line-height: 1.5; }
+.seed-summit-audience { display: grid; grid-template-columns: minmax(245px, .8fr) minmax(0, 1.5fr); gap: 45px; align-items: center; margin-bottom: 18px; padding: 30px 34px; color: var(--green-deep); background: white; border: 1px solid #dbe5d8; border-radius: 12px; }
+.seed-summit-audience h3 { margin: 8px 0 0; color: var(--green-deep); font-size: 1.55rem; }
+.seed-summit-audience p { margin: 0; color: var(--ink-soft); line-height: 1.8; }
+.seed-summit-priority-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 18px; }
+.seed-summit-priority-card { display: grid; grid-template-columns: 42px minmax(0, 1fr); gap: 18px; padding: 31px; background: white; border: 1px solid #dbe5d8; border-top: 4px solid var(--green); border-radius: 12px; box-shadow: 0 12px 32px rgba(20, 58, 39, .055); }
+.seed-summit-priority-card-gold { border-top-color: #ba8b15; }
+.seed-summit-card-number { color: #99720f; font-size: .72rem; font-weight: 850; letter-spacing: .08em; }
+.seed-summit-priority-card h3 { margin: 8px 0 18px; color: var(--green-deep); font-size: 1.25rem; line-height: 1.35; }
+.seed-summit-priority-card ul { display: grid; gap: 11px; margin: 0; padding: 0; list-style: none; }
+.seed-summit-priority-card li { position: relative; padding-inline-start: 20px; color: var(--ink-soft); font-size: .82rem; line-height: 1.7; }
+.seed-summit-priority-card li::before { position: absolute; content: ''; top: .72em; inset-inline-start: 0; width: 7px; height: 7px; background: var(--gold); border-radius: 50%; box-shadow: 0 0 0 4px rgba(251, 188, 5, .14); }
+.seed-summit-themes { display: grid; grid-template-columns: minmax(240px, .65fr) minmax(0, 1.35fr); gap: 48px; margin-top: 18px; padding: 38px; color: white; background: #4a0b0b; border-radius: 12px; }
+.seed-summit-themes h3 { margin: 8px 0 0; color: white; font-size: 1.7rem; }
+.seed-summit-themes ol { display: grid; gap: 0; margin: 0; padding: 0; list-style: none; }
+.seed-summit-themes li { display: grid; grid-template-columns: 38px minmax(0, 1fr); gap: 13px; align-items: start; padding: 13px 0; border-bottom: 1px solid rgba(255, 255, 255, .13); }
+.seed-summit-themes li:first-child { padding-top: 0; }
+.seed-summit-themes li:last-child { padding-bottom: 0; border-bottom: 0; }
+.seed-summit-themes li span { color: var(--gold); font-size: .67rem; font-weight: 850; letter-spacing: .08em; }
+.seed-summit-themes li strong { color: rgba(255, 255, 255, .9); font-size: .83rem; font-weight: 600; line-height: 1.65; }
+.seed-summit-source-note { margin: 17px 0 0; color: var(--ink-soft); font-size: .68rem; }
 @media (prefers-reduced-motion: reduce) { .day-card-background { transition: none; } }
 @media (prefers-reduced-motion: reduce) { .africa-country { transition: none; } }
 @media (max-width: 1050px) {
@@ -493,6 +535,7 @@
     .coverage-participation { gap: 18px; }
     .hotel-list { grid-template-columns: repeat(2, minmax(0, 1fr)); }
     .caadp-contacts { grid-template-columns: 1fr; gap: 25px; }
+    .seed-summit-themes { grid-template-columns: 1fr; gap: 25px; }
 }
 
 /* Speakers */
@@ -580,6 +623,10 @@
     .caadp-information-grid { grid-template-columns: 1fr; }
     .caadp-info-card-wide { grid-column: auto; }
     .caadp-contact-groups { grid-template-columns: 1fr 1fr; }
+    .seed-summit-fact-strip { grid-template-columns: 1fr 1fr; }
+    .seed-summit-fact-strip > div:last-child { grid-column: 1 / -1; border-top: 1px solid rgba(255, 255, 255, .16); }
+    .seed-summit-fact-strip > div:nth-child(2) { border-inline-end: 0; }
+    .seed-summit-audience, .seed-summit-priority-grid { grid-template-columns: 1fr; }
 }
 @media (max-width: 520px) {
     .coverage-heading { flex-direction: column; }
@@ -599,6 +646,16 @@
     .caadp-audience, .caadp-info-card, .caadp-contacts { padding: 23px; }
     .hotel-list, .caadp-quick-facts, .caadp-contact-groups { grid-template-columns: 1fr; }
     .caadp-info-card { grid-template-columns: 1fr; gap: 9px; }
+    .seed-summit-home-hero .hero-copy { width: 100%; padding: 25px 23px; backdrop-filter: blur(6px); }
+    .seed-summit-home-hero .hero-copy h1 { font-size: clamp(2.25rem, 11vw, 3.15rem); }
+    .seed-summit-home-hero .hero-summary { font-size: .94rem; }
+    .seed-summit-hero-facts { flex-direction: column; gap: 8px; margin-bottom: 21px; }
+    .seed-summit-fact-strip { grid-template-columns: 1fr; }
+    .seed-summit-fact-strip > div { padding: 20px 22px; border-inline-end: 0; border-bottom: 1px solid rgba(255, 255, 255, .16); }
+    .seed-summit-fact-strip > div:last-child { grid-column: auto; border-top: 0; border-bottom: 0; }
+    .seed-summit-audience, .seed-summit-priority-card, .seed-summit-themes { padding: 24px; }
+    .seed-summit-audience { gap: 14px; }
+    .seed-summit-priority-card { grid-template-columns: 1fr; gap: 8px; }
 }
 
 /* Day-by-day event media gallery. */

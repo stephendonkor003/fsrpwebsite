@@ -7,6 +7,7 @@ use App\Models\Event;
 use App\Models\Faq;
 use App\Models\NewsPost;
 use Database\Seeders\FsrpEventPortalSeeder;
+use Database\Seeders\SeedInvestmentSummitSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Storage;
@@ -150,27 +151,48 @@ class PublicSiteTest extends TestCase
         }
     }
 
-    public function test_caadp_registration_is_available_on_every_homepage_slide(): void
+    public function test_homepage_hero_and_header_are_focused_on_the_seed_summit(): void
     {
+        $this->travelTo('2026-09-21 12:00:00');
         Storage::fake('local');
         Storage::disk('local')->put(FsrpEventPortalSeeder::BRIEF_PATH, '%PDF-1.7 information note');
         Storage::disk('local')->put(FsrpEventPortalSeeder::PROGRAMME_PATH, '%PDF-1.7 programme overview');
         $this->seed(FsrpEventPortalSeeder::class);
+        $this->seed(SeedInvestmentSummitSeeder::class);
+
+        $summit = Event::query()->where('slug', SeedInvestmentSummitSeeder::EVENT_SLUG)->sole();
 
         $response = $this->get('/en')
             ->assertOk()
-            ->assertSee(FsrpEventPortalSeeder::REGISTRATION_URL, false)
-            ->assertSee('Register now');
+            ->assertViewHas('slides', fn ($slides): bool => $slides->count() === 1
+                && $slides->sole()->translate('title', 'en') === 'Inaugural Seed Investment Summit')
+            ->assertViewHas('events', fn ($events): bool => $events->modelKeys() === [$summit->id])
+            ->assertViewHas('sessions', fn ($sessions): bool => $sessions->isNotEmpty()
+                && $sessions->every(fn ($session): bool => $session->relationLoaded('event')))
+            ->assertViewHas('resources', fn ($resources): bool => $resources->every(fn ($resource): bool => $resource->relationLoaded('event')))
+            ->assertViewHas('newsPosts', fn ($posts): bool => $posts->isEmpty())
+            ->assertViewHas('faqs', fn ($faqs): bool => $faqs->isEmpty())
+            ->assertSee('/en'.SeedInvestmentSummitSeeder::REGISTRATION_PATH, false)
+            ->assertSee('Register now')
+            ->assertSee('Palazzo Convention Centre, Ezulwini, Eswatini')
+            ->assertDontSee('22nd CAADP Partnership Platform: participant information')
+            ->assertDontSee('Who convenes the 22nd CAADP Partnership Platform?');
 
-        $this->assertSame(9, substr_count($response->getContent(), 'href="'.FsrpEventPortalSeeder::REGISTRATION_URL.'"'));
-        $this->assertSame(9, substr_count($response->getContent(), ' data-slide'));
-        $response->assertSee('H.E. Moses Vilakati')
-            ->assertSee('Nardos Bekele-Thomas')
-            ->assertSee('Dr. Anxious Jongwe Masuka')
-            ->assertSee('Elias Mpedi Magosi')
-            ->assertSee('Gabriel Mbairobe')
-            ->assertSee('/images/speakers/moses-vilakati.png', false)
-            ->assertSee(route('speakers', 'en'), false);
+        $content = $response->getContent();
+        $this->assertMatchesRegularExpression('#<section[^>]+seed-summit-home-hero.*?</section>#s', $content);
+        $this->assertSame(1, preg_match('#<section[^>]+seed-summit-home-hero.*?</section>#s', $content, $heroMatches));
+        $this->assertSame(1, preg_match('#<header[^>]*>.*?</header>#s', $content, $headerMatches));
+
+        $hero = $heroMatches[0];
+        $header = $headerMatches[0];
+
+        $this->assertSame(1, substr_count($hero, ' data-slide'));
+        $this->assertStringContainsString('Inaugural Seed Investment Summit', $hero);
+        $this->assertStringContainsString(SeedInvestmentSummitSeeder::IMAGE_PATH, $hero);
+        $this->assertStringNotContainsString('22nd CAADP Partnership Platform', $hero);
+        $this->assertStringNotContainsString('H.E. Moses Vilakati', $hero);
+        $this->assertStringNotContainsString('FSRP Events', $header);
+        $this->assertStringContainsString('alt="African Union"', $header);
     }
 
     public function test_programme_page_shows_update_notice_and_readable_english_punctuation(): void
@@ -206,22 +228,85 @@ class PublicSiteTest extends TestCase
             ->assertViewHas('events', fn ($events): bool => $events->modelKeys() === [$event->id]);
     }
 
-    public function test_homepage_keeps_ongoing_events_visible_and_excludes_past_and_unpublished_events(): void
+    public function test_event_directory_defaults_to_every_published_event_and_retains_period_filters(): void
     {
-        $this->travelTo('2026-09-16 12:00:00');
+        $this->travelTo('2026-09-21 12:00:00');
         Event::query()->update(['is_published' => false]);
-        $ongoing = Event::factory()->create([
-            'start_at' => '2026-09-15 08:00:00', 'end_at' => '2026-09-18 17:00:00', 'is_featured' => true,
+        $upcoming = Event::factory()->create([
+            'start_at' => '2026-10-05 08:00:00', 'end_at' => '2026-10-07 17:00:00',
         ]);
-        $today = Event::factory()->create(['start_at' => '2026-09-16 08:00:00', 'end_at' => null]);
-        $upcoming = Event::factory()->create(['start_at' => '2026-09-20 08:00:00', 'end_at' => '2026-09-21 17:00:00']);
-        Event::factory()->create(['start_at' => '2026-09-14 08:00:00', 'end_at' => '2026-09-15 17:00:00', 'is_featured' => true]);
-        Event::factory()->create(['start_at' => '2026-09-16 08:00:00', 'end_at' => '2026-09-16 10:00:00']);
-        Event::factory()->create(['start_at' => '2026-09-15 08:00:00', 'end_at' => '2026-09-18 17:00:00', 'is_published' => false]);
+        $pastWithoutEndDate = Event::factory()->create([
+            'start_at' => '2026-09-19 08:00:00', 'end_at' => null,
+        ]);
+        $past = Event::factory()->create([
+            'start_at' => '2026-09-15 08:00:00', 'end_at' => '2026-09-18 17:00:00',
+        ]);
+        $unpublished = Event::factory()->create([
+            'start_at' => '2026-10-08 08:00:00', 'end_at' => '2026-10-09 17:00:00', 'is_published' => false,
+        ]);
+
+        $this->get('/en/events')
+            ->assertOk()
+            ->assertViewHas('period', 'all')
+            ->assertViewHas('events', fn ($events): bool => $events->modelKeys() === [
+                $upcoming->id,
+                $pastWithoutEndDate->id,
+                $past->id,
+            ])
+            ->assertDontSee($unpublished->translate('title', 'en'));
+
+        $this->get('/en/events?period=upcoming')
+            ->assertViewHas('events', fn ($events): bool => $events->modelKeys() === [$upcoming->id]);
+
+        $this->get('/en/events?period=past')
+            ->assertViewHas('events', fn ($events): bool => $events->modelKeys() === [
+                $pastWithoutEndDate->id,
+                $past->id,
+            ]);
+    }
+
+    public function test_homepage_only_surfaces_the_current_seed_summit_event(): void
+    {
+        $this->travelTo('2026-09-21 12:00:00');
+        $summit = Event::query()->where('slug', SeedInvestmentSummitSeeder::EVENT_SLUG)->sole();
+        $summit->update([
+            'start_at' => '2026-10-05 08:00:00',
+            'end_at' => '2026-10-07 17:00:00',
+            'is_published' => true,
+            'is_featured' => true,
+        ]);
+        Event::factory()->create([
+            'title' => ['en' => 'Another featured gathering'],
+            'start_at' => '2026-09-22 08:00:00',
+            'end_at' => '2026-09-23 17:00:00',
+            'is_featured' => true,
+        ]);
+        Event::factory()->create([
+            'title' => ['en' => 'Past gathering'],
+            'start_at' => '2026-09-15 08:00:00',
+            'end_at' => '2026-09-18 17:00:00',
+        ]);
+        Event::factory()->create([
+            'title' => ['en' => 'Unpublished gathering'],
+            'start_at' => '2026-09-25 08:00:00',
+            'end_at' => '2026-09-26 17:00:00',
+            'is_published' => false,
+        ]);
 
         $this->get('/en')
-            ->assertViewHas('events', fn ($events): bool => $events->modelKeys() === [$ongoing->id, $today->id, $upcoming->id])
-            ->assertViewHas('featuredEvent', fn ($event): bool => $event->is($ongoing));
+            ->assertViewHas('events', fn ($events): bool => $events->modelKeys() === [$summit->id])
+            ->assertViewHas('featuredEvent', fn ($event): bool => $event->is($summit))
+            ->assertSee('Inaugural Seed Investment Summit')
+            ->assertDontSee('Another featured gathering')
+            ->assertDontSee('Past gathering')
+            ->assertDontSee('Unpublished gathering');
+
+        $summit->update(['is_featured' => false]);
+
+        $this->get('/en')
+            ->assertViewHas('featuredEvent', null)
+            ->assertViewHas('slides', fn ($slides): bool => $slides->isEmpty())
+            ->assertViewHas('events', fn ($events): bool => $events->isEmpty());
     }
 
     public function test_news_search_matches_accented_translations(): void

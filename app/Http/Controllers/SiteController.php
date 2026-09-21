@@ -14,6 +14,7 @@ use App\Models\Session;
 use App\Models\Setting;
 use App\Models\Slide;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Collection as EloquentCollection;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
@@ -23,19 +24,36 @@ class SiteController extends Controller
 {
     public function home(): View
     {
+        $seedSummitSlug = (string) config('seed_summit.event_slug');
+        $featuredEvent = Event::query()
+            ->where('slug', $seedSummitSlug)
+            ->where('is_published', true)
+            ->where('is_featured', true)
+            ->currentOrUpcoming()
+            ->with([
+                'resources' => fn (HasMany $query) => $query->with('event')->published()->orderBy('sort_order'),
+                'sessions' => fn (HasMany $query) => $query->with('event')->published()->orderBy('start_at')->orderBy('sort_order'),
+            ])
+            ->first();
+
+        $slides = $featuredEvent === null
+            ? collect()
+            : Slide::query()
+                ->where('is_active', true)
+                ->where('button_url', '/events/'.$seedSummitSlug)
+                ->orderBy('sort_order')
+                ->get();
+
         return view('site.home', array_merge($this->shared(), [
-            'slides' => Slide::where('is_active', true)->orderByRaw("(video_url IS NOT NULL AND video_url <> '') DESC")->orderBy('sort_order')->get(),
-            'speakers' => $this->speakerProfiles(),
-            'featuredEvent' => Event::where('is_published', true)->where('is_featured', true)->currentOrUpcoming()
-                ->with(['resources' => fn (HasMany $query) => $query->published()->orderBy('sort_order')])->orderBy('start_at')->first(),
-            'resources' => EventResource::with('event')->published()->latest()->limit(3)->get(),
-            'sessions' => Session::with('event')->published()->where('start_at', '>=', now()->startOfDay())->orderBy('start_at')->limit(6)->get(),
-            'events' => Event::where('is_published', true)->currentOrUpcoming()->orderBy('start_at')->limit(4)->get(),
+            'slides' => $slides,
+            'speakers' => [],
+            'featuredEvent' => $featuredEvent,
+            'resources' => $featuredEvent?->resources->take(3) ?? collect(),
+            'sessions' => $featuredEvent?->sessions->take(6) ?? collect(),
+            'events' => new EloquentCollection($featuredEvent === null ? [] : [$featuredEvent]),
             'programs' => Program::where('is_published', true)->orderBy('sort_order')->get(),
-            'newsPosts' => NewsPost::where('is_published', true)->where(function (Builder $query): void {
-                $query->whereNull('published_at')->orWhere('published_at', '<=', now());
-            })->orderByDesc('published_at')->limit(3)->get(),
-            'faqs' => Faq::where('is_published', true)->orderBy('sort_order')->limit(4)->get(),
+            'newsPosts' => collect(),
+            'faqs' => collect(),
             'homeSections' => HomeSection::where('is_active', true)->orderBy('sort_order')->get(),
         ]));
     }
@@ -53,16 +71,24 @@ class SiteController extends Controller
         $validated = $request->validate([
             'q' => ['nullable', 'string', 'max:500'],
             'mode' => ['nullable', 'string', 'in:in-person,online,hybrid'],
-            'period' => ['nullable', 'string', 'in:upcoming,past'],
+            'period' => ['nullable', 'string', 'in:all,upcoming,past'],
         ]);
         $search = trim($validated['q'] ?? '');
         $mode = $validated['mode'] ?? '';
-        $period = $validated['period'] ?? 'upcoming';
+        $period = $validated['period'] ?? 'all';
         $events = Event::where('is_published', true)
             ->when($search !== '', fn (Builder $query) => $this->searchTranslations($query, ['title'], $search))
             ->when(in_array($mode, ['in-person', 'online', 'hybrid'], true), fn (Builder $query) => $query->where('mode', $mode))
-            ->when($period === 'past', fn (Builder $query) => $query->where('end_at', '<', now())->orderByDesc('start_at'))
-            ->when($period !== 'past', fn (Builder $query) => $query->currentOrUpcoming()->orderBy('start_at'))
+            ->when($period === 'past', fn (Builder $query) => $query
+                ->where(function (Builder $past): void {
+                    $past->where('end_at', '<', now())
+                        ->orWhere(function (Builder $withoutEndDate): void {
+                            $withoutEndDate->whereNull('end_at')->where('start_at', '<', now()->startOfDay());
+                        });
+                })
+                ->orderByDesc('start_at'))
+            ->when($period === 'upcoming', fn (Builder $query) => $query->currentOrUpcoming()->orderBy('start_at'))
+            ->when($period === 'all', fn (Builder $query) => $query->orderByDesc('start_at'))
             ->paginate(9)
             ->withQueryString();
 

@@ -38,6 +38,7 @@ class DatabaseSeeder extends Seeder
         $this->seedAboutPage();
         $this->seedHomeSections();
         $this->seedSettings();
+        $this->call(SeedInvestmentSummitSeeder::class);
     }
 
     private function seedAdmin(): void

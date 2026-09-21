@@ -7,6 +7,7 @@ use App\Http\Controllers\Admin\SettingsController;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\ResourceDownloadController;
 use App\Http\Controllers\SearchEngineController;
+use App\Http\Controllers\SeedSummitRegistrationController;
 use App\Http\Controllers\SiteController;
 use Illuminate\Support\Facades\Route;
 
@@ -41,6 +42,19 @@ Route::prefix('{locale}')->where(['locale' => 'en|fr|ar|pt|es|sw'])->middleware(
     Route::get('/', [SiteController::class, 'home'])->name('home');
     Route::get('/about', [SiteController::class, 'about'])->name('about');
     Route::get('/events', [SiteController::class, 'events'])->name('events.index');
+    Route::get('/events/inaugural-seed-investment-summit/register', [SeedSummitRegistrationController::class, 'create'])
+        ->name('seed-summit.registration.create');
+    Route::post('/events/inaugural-seed-investment-summit/register', [SeedSummitRegistrationController::class, 'store'])
+        ->middleware('throttle:seed-summit-registration')
+        ->name('seed-summit.registration.store');
+    Route::get('/events/inaugural-seed-investment-summit/registrations/{registration:public_id}', [SeedSummitRegistrationController::class, 'show'])
+        ->whereUuid('registration')->middleware('signed')->name('seed-summit.registrations.show');
+    Route::get('/events/inaugural-seed-investment-summit/registrations/{registration:public_id}/pdf', [SeedSummitRegistrationController::class, 'pdf'])
+        ->whereUuid('registration')->middleware('signed')->name('seed-summit.registrations.pdf');
+    Route::get('/events/inaugural-seed-investment-summit/registrations/{registration:public_id}/verify-email', [SeedSummitRegistrationController::class, 'showEmailVerification'])
+        ->whereUuid('registration')->middleware('signed')->name('seed-summit.registrations.verify-email.show');
+    Route::post('/events/inaugural-seed-investment-summit/registrations/{registration:public_id}/verify-email', [SeedSummitRegistrationController::class, 'verifyEmail'])
+        ->whereUuid('registration')->middleware(['signed', 'throttle:10,1'])->name('seed-summit.registrations.verify-email');
     Route::get('/events/{slug}', [SiteController::class, 'event'])->name('events.show');
     Route::get('/news', [SiteController::class, 'news'])->name('news.index');
     Route::get('/news/{slug}', [SiteController::class, 'newsPost'])->name('news.show');

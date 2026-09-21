@@ -4,6 +4,9 @@
 @section('content')
     @php
         $isCaadpEvent = $event->slug === '22nd-caadp-partnership-platform';
+        $isSeedSummitEvent = $event->slug === config('seed_summit.event_slug');
+        $registrationUrl = $event->registrationUrlForLocale($locale);
+        $registrationIsExternal = $event->registrationUrlOpensExternally();
     @endphp
     <section class="detail-hero">
         <img src="{{ $event->image ?: asset('images/fsrp/field-implementation.jpeg') }}" alt="">
@@ -19,7 +22,11 @@
                 @if($galleryDays !== [])
                     <a class="button button-outline-light" href="#event-gallery">{{ __('portal.view_gallery') }} @include('site.partials.icon', ['name' => 'arrow'])</a>
                 @endif
-                <a class="hero-secondary" href="#programme">{{ __('portal.daily_programme') }} @include('site.partials.icon', ['name' => 'arrow'])</a>
+                @if($isSeedSummitEvent)
+                    <a class="hero-secondary" href="#summit-overview">{{ __('ui.events.about_event') }} @include('site.partials.icon', ['name' => 'arrow'])</a>
+                @elseif($sessions->isNotEmpty())
+                    <a class="hero-secondary" href="#programme">{{ __('portal.daily_programme') }} @include('site.partials.icon', ['name' => 'arrow'])</a>
+                @endif
             </div>
         </div>
     </section>
@@ -31,14 +38,17 @@
     <section class="section detail-body-section"><div class="container event-detail-layout">
         <article class="detail-article"><p class="eyebrow"><span></span>{{ __('ui.events.about_event') }}</p><h2>{{ __('ui.events.what_to_expect') }}</h2><div class="prose event-description">{!! nl2br(e($event->translate('body'))) !!}</div></article>
         <aside class="event-participation">
-            <span class="step-icon">@include('site.partials.icon', ['name' => 'people'])</span><h3>{{ $event->registration_url ? __('ui.actions.register_now') : __('portal.registration_pending') }}</h3>
-            @if($event->registration_url)<a class="button button-dark" href="{{ $event->registration_url }}" target="_blank" rel="noopener">{{ __('ui.actions.register_now') }} @include('site.partials.icon', ['name' => 'external'])</a>@else<p>{{ __('portal.registration_pending_text') }}</p>@endif
+            <span class="step-icon">@include('site.partials.icon', ['name' => 'people'])</span><h3>{{ $registrationUrl ? __('ui.actions.register_now') : __('portal.registration_pending') }}</h3>
+            @if($registrationUrl)<a class="button button-dark" href="{{ $registrationUrl }}" @if($registrationIsExternal) target="_blank" rel="noopener" @endif>{{ __('ui.actions.register_now') }} @include('site.partials.icon', ['name' => $registrationIsExternal ? 'external' : 'arrow'])</a>@else<p>{{ __('portal.registration_pending_text') }}</p>@endif
             @if($resources->isNotEmpty())<a class="text-link" href="#event-documents">{{ __('portal.event_resources') }} @include('site.partials.icon', ['name' => 'download'])</a>@endif
             <div class="event-share"><span>{{ __('ui.actions.share') }}</span><button type="button" data-copy-link data-success-label="{{ __('portal.copy_success') }}" data-prompt-label="{{ __('portal.copy_prompt') }}">{{ __('ui.common.copy_link') }}</button></div>
         </aside>
     </div></section>
     @if($isCaadpEvent)
         @include('site.events.partials.caadp-participant-information')
+    @endif
+    @if($isSeedSummitEvent)
+        @include('site.events.partials.seed-summit-information')
     @endif
     @if($galleryDays !== [])
         @include('site.events.partials.event-gallery')

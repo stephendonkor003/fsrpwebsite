@@ -22,7 +22,8 @@
                 <label>
                     <span>{{ __('ui.events.period') }}</span>
                     <select name="period">
-                        <option value="upcoming" @selected($period !== 'past')>{{ __('ui.events.upcoming') }}</option>
+                        <option value="all" @selected($period === 'all')>{{ __('ui.common.all') }}</option>
+                        <option value="upcoming" @selected($period === 'upcoming')>{{ __('ui.events.upcoming') }}</option>
                         <option value="past" @selected($period === 'past')>{{ __('ui.events.past') }}</option>
                     </select>
                 </label>
@@ -41,7 +42,10 @@
     <section class="section listing-section">
         <div class="container">
             <div class="listing-intro">
-                <div><p class="eyebrow"><span></span>{{ $period === 'past' ? __('ui.events.past') : __('ui.events.upcoming') }}</p><h2>{{ __('ui.events.discover_title') }}</h2></div>
+                <div>
+                    <p class="eyebrow"><span></span>{{ match ($period) { 'past' => __('ui.events.past'), 'upcoming' => __('ui.events.upcoming'), default => __('ui.common.all') } }}</p>
+                    <h2>{{ $period === 'all' ? __('ui.events.title') : __('ui.events.discover_title') }}</h2>
+                </div>
                 <p>{{ __('ui.pagination.showing', ['from' => $events->firstItem() ?? 0, 'to' => $events->lastItem() ?? 0, 'total' => $events->total()]) }}</p>
             </div>
             <div class="listing-grid event-listing-grid">

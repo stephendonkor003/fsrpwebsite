@@ -1,6 +1,6 @@
 @php
     $seo = app(\App\Seo::class);
-    $seoEvent = $routeName === 'events.show' ? $event : null;
+    $seoEvent = in_array($routeName, ['events.show', 'seed-summit.registration.create'], true) ? $event : null;
     $seoPost = $routeName === 'news.show' ? $post : null;
     $metadata = $seo->page(request(), $siteName, $seoEvent, $seoPost);
     $structuredData = app(\App\StructuredData::class)->graph($locale, $siteName, $metadata['title'], $metadata['description'], $metadata['canonical'], $seoEvent, $seoPost);

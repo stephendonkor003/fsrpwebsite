@@ -6,6 +6,7 @@
     $siteName = $setting('site_name', __('portal.brand'));
     $logo = $setting('logo', '/images/fsrp/african-union-logo.png');
     $routeName = request()->route()?->getName();
+    $isPrivateRegistrationRoute = in_array($routeName, ['seed-summit.registrations.show', 'seed-summit.registrations.pdf', 'seed-summit.registrations.verify-email.show', 'seed-summit.registrations.verify-email'], true);
 @endphp
 <!DOCTYPE html>
 <html lang="{{ $locale }}" dir="{{ $locale === 'ar' ? 'rtl' : 'ltr' }}">
@@ -17,21 +18,21 @@
     <link rel="icon" href="{{ asset('images/fsrp/african-union-logo.png') }}">
     <link rel="stylesheet" href="{{ asset('assets/site.css') }}">
     <link rel="stylesheet" href="{{ asset('assets/fsrp-events.css') }}">
+    @stack('styles')
 </head>
 <body class="fsrp-site page-{{ str_replace('.', '-', (string) $routeName) }}">
     <a class="skip-link" href="#main-content">{{ __('ui.common.skip_to_content') }}</a>
     <header class="site-header" data-header>
         <div class="container main-nav">
-            <a class="brand" href="{{ route('home', $locale) }}" aria-label="{{ $siteName }} — {{ __('ui.nav.home') }}">
+            <a class="brand header-brand" href="{{ route('home', $locale) }}" aria-label="African Union — {{ __('ui.nav.home') }}">
                 <img src="{{ $logo }}" alt="African Union" width="100" height="63">
-                <span class="brand-copy"><strong>{{ $siteName }}</strong><small>{{ __('portal.region') }}</small></span>
             </a>
             <button class="nav-toggle" type="button" aria-controls="primary-navigation" aria-expanded="false" data-nav-toggle><span class="nav-toggle-lines" aria-hidden="true"><i></i><i></i><i></i></span><span class="sr-only">{{ __('ui.common.open_menu') }}</span></button>
             <nav id="primary-navigation" class="primary-navigation" aria-label="{{ __('ui.common.primary_navigation') }}" data-navigation>
                 @foreach(['home' => __('ui.nav.home'), 'events.index' => __('ui.nav.events'), 'programs' => __('portal.programme'), 'speakers' => __('ui.sessions.speakers'), 'resources.index' => __('portal.resources'), 'news.index' => __('ui.nav.news'), 'about' => __('ui.nav.about')] as $name => $label)
                     <a href="{{ route($name, $locale) }}" @class(['active' => $routeName === $name || ($name === 'events.index' && $routeName === 'events.show') || ($name === 'news.index' && $routeName === 'news.show')]) @if($routeName === $name) aria-current="page" @endif>{{ $label }}</a>
                 @endforeach
-                <div class="language-menu">
+                @unless($isPrivateRegistrationRoute)<div class="language-menu">
                     <button class="language-trigger" type="button" aria-expanded="false" aria-label="{{ __('ui.labels.language') }}" data-language-trigger>@include('site.partials.icon', ['name' => 'globe'])<span>{{ strtoupper($locale) }}</span>@include('site.partials.icon', ['name' => 'chevron'])</button>
                     <div class="language-dropdown" data-language-dropdown>
                         @foreach($locales as $code => $language)
@@ -42,7 +43,7 @@
                             <a href="{{ $languageUrl }}" lang="{{ $code }}" dir="{{ $language['direction'] }}" @class(['active' => $code === $locale])>{{ $language['native_name'] }} @if($code === $locale)<span aria-hidden="true">✓</span>@endif</a>
                         @endforeach
                     </div>
-                </div>
+                </div>@endunless
                 <a class="nav-cta" href="{{ route('events.index', $locale) }}">{{ __('portal.explore') }} @include('site.partials.icon', ['name' => 'arrow'])</a>
             </nav>
         </div>
@@ -63,5 +64,6 @@
     </footer>
     <button class="back-to-top" type="button" aria-label="{{ __('ui.common.back_to_top') }}" data-back-to-top><svg aria-hidden="true" viewBox="0 0 24 24"><path d="m6 14 6-6 6 6"/></svg></button>
     <script src="{{ asset('assets/site.js') }}" defer></script>
+    @stack('scripts')
 </body>
 </html>

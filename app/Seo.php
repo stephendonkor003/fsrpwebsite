@@ -47,7 +47,7 @@ class Seo
 
     public function robots(Request $request): string
     {
-        if ($request->is('admin', 'admin/*', '*/resources/*/download', 'up')) {
+        if ($request->is('admin', 'admin/*', '*/resources/*/download', 'up') || $this->privateRegistrationRoute($request)) {
             return 'noindex, nofollow';
         }
 
@@ -71,6 +71,13 @@ class Seo
             return $this->absolute($request->path());
         }
 
+        if ($this->privateRegistrationRoute($request)) {
+            return $this->url('events.show', [
+                'locale' => $route->parameter('locale', config('locales.default')),
+                'slug' => config('seed_summit.event_slug'),
+            ]);
+        }
+
         return $this->url($route->getName(), array_merge($route->parameters(), $this->queryParameters($request)));
     }
 
@@ -79,7 +86,10 @@ class Seo
     {
         $route = $request->route();
 
-        if (! $route?->getName() || ! $route->hasParameter('locale') || $this->filtered($request)) {
+        if (! $route?->getName()
+            || ! $route->hasParameter('locale')
+            || $this->filtered($request)
+            || $this->privateRegistrationRoute($request)) {
             return [];
         }
 
@@ -98,7 +108,7 @@ class Seo
     public function page(Request $request, string $siteName, ?Event $event = null, ?NewsPost $post = null): array
     {
         $key = match ($request->route()?->getName()) {
-            'events.index', 'events.show' => 'events',
+            'events.index', 'events.show', 'seed-summit.registration.create', 'seed-summit.registrations.show' => 'events',
             'news.index', 'news.show' => 'news',
             'programs' => 'programmes',
             'speakers' => 'speakers',
@@ -165,5 +175,17 @@ class Seo
         }
 
         return $parameters;
+    }
+
+    private function privateRegistrationRoute(Request $request): bool
+    {
+        return in_array($request->route()?->getName(), [
+            'seed-summit.registration.create',
+            'seed-summit.registration.store',
+            'seed-summit.registrations.show',
+            'seed-summit.registrations.pdf',
+            'seed-summit.registrations.verify-email.show',
+            'seed-summit.registrations.verify-email',
+        ], true);
     }
 }
