@@ -10,6 +10,8 @@ use App\Models\Event;
 use App\Models\EventRegistration;
 use App\Support\SeedSummitRegistrationPdf;
 use App\Support\UnicodePdfFont;
+use DOMDocument;
+use DOMXPath;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\Request;
 use Illuminate\Http\UploadedFile;
@@ -58,6 +60,52 @@ class SeedSummitRegistrationTest extends TestCase
             ->assertSee('/images/seed-investment-summit/seed-investment-summit-2026.jpeg', false)
             ->assertSee('class="seed-event-hero-media"', false)
             ->assertDontSee('class="seed-event-flyer"', false);
+    }
+
+    public function test_all_55_au_member_states_are_available_in_each_registration_country_field(): void
+    {
+        $memberStates = array_values(array_diff(config('seed_summit.member_states'), ['Not applicable']));
+        $this->assertCount(55, $memberStates);
+        $this->assertCount(55, array_unique($memberStates));
+        $this->assertContains('Sahrawi Arab Democratic Republic', $memberStates);
+
+        $response = $this->get(route('seed-summit.registration.create', ['locale' => 'en']))->assertOk();
+        $previous = libxml_use_internal_errors(true);
+        $document = new DOMDocument;
+        $document->loadHTML('<?xml encoding="utf-8" ?>'.$response->getContent(), LIBXML_NONET);
+        libxml_clear_errors();
+        libxml_use_internal_errors($previous);
+        $xpath = new DOMXPath($document);
+
+        foreach (['field-nationality', 'field-issuing-country', 'field-member-state'] as $fieldId) {
+            $options = $xpath->query('//*[@id="'.$fieldId.'"]/option[@value != ""]');
+            $values = [];
+
+            foreach ($options as $option) {
+                $values[] = $option->getAttribute('value');
+            }
+
+            $this->assertSame([], array_values(array_diff($memberStates, $values)), $fieldId);
+            $this->assertContains('Sahrawi Arab Democratic Republic', $values, $fieldId);
+        }
+    }
+
+    public function test_sahrawi_republic_is_accepted_in_all_three_registration_country_fields(): void
+    {
+        Storage::fake('local');
+        Queue::fake();
+
+        $this->post(route('seed-summit.registration.store', ['locale' => 'en']), $this->validPayload([
+            'nationality' => 'Sahrawi Arab Democratic Republic',
+            'issuing_country' => 'Sahrawi Arab Democratic Republic',
+            'member_state' => 'Sahrawi Arab Democratic Republic',
+        ]))->assertRedirect();
+
+        $registration = EventRegistration::query()->sole();
+        $this->assertSame('Sahrawi Arab Democratic Republic', $registration->nationality);
+        $this->assertSame('Sahrawi Arab Democratic Republic', $registration->issuing_country);
+        $this->assertSame('Sahrawi Arab Democratic Republic', $registration->member_state);
+        Queue::assertPushed(SendSeedSummitRegistrationConfirmation::class);
     }
 
     public function test_delegate_can_register_and_receive_a_private_signed_receipt(): void
