@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Middleware\EnsureAdmin;
+use App\Http\Middleware\PreventPrivateResponseCaching;
 use App\Http\Middleware\SearchVisibility;
 use App\Http\Middleware\SetLocale;
 use Illuminate\Foundation\Application;
@@ -18,6 +19,7 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->append(SearchVisibility::class);
         $middleware->alias([
             'admin' => EnsureAdmin::class,
+            'private.admin' => PreventPrivateResponseCaching::class,
             'locale' => SetLocale::class,
         ]);
     })

@@ -5,6 +5,7 @@ Before planning or editing, find the row whose globs match the file's path and r
 | Applies to | Rule file |
 | --- | --- |
 | app/**, app/AfricaMap.php | .ai/rules/app.md |
+| {app/Models/EventRegistration*.php,app/Support/*Registration*.php,app/Http/Controllers/Admin/Registration*.php,app/Console/Commands/RebuildEventRegistrationSearchIndex.php} | .ai/rules/commands.md |
 | database/seeders/AfricanUnionAdministratorsSeeder.php | .ai/rules/database-seeders.md |
 | database/** | .ai/rules/database.md |
 | public/media/events/** | .ai/rules/events.md |

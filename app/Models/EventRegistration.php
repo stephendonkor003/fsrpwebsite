@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Casts\EncryptedDate;
+use App\Support\EventRegistrationSearchIndex;
 use Database\Factories\EventRegistrationFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Builder;
@@ -10,6 +11,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Prunable;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 
@@ -70,6 +72,16 @@ use Illuminate\Support\Str;
 ])]
 class EventRegistration extends Model
 {
+    private const SEARCH_INDEX_ATTRIBUTES = [
+        'first_name',
+        'surname',
+        'organisation',
+        'member_state',
+        'nationality',
+        'gender',
+        'delegation_capacity',
+    ];
+
     public const EMAIL_PENDING = 'pending';
 
     public const EMAIL_QUEUED = 'queued';
@@ -84,16 +96,49 @@ class EventRegistration extends Model
     use HasFactory, Prunable;
 
     protected $hidden = [
+        'title',
+        'first_name',
+        'surname',
+        'gender',
+        'date_of_birth',
+        'nationality',
         'national_id_number',
         'passport_number',
+        'passport_expiry_date',
+        'issuing_country',
+        'visa_required',
+        'passport_photo_path',
+        'passport_photo_original_name',
+        'passport_scan_path',
+        'passport_scan_original_name',
+        'organisation',
+        'member_state',
+        'delegation_capacity',
+        'years_in_service',
+        'areas_of_expertise',
         'mobile_number',
         'alternative_phone',
-        'personal_email',
+        'official_email',
         'official_email_hash',
         'verified_email_hash',
+        'personal_email',
         'emergency_contact',
-        'passport_photo_path',
-        'passport_scan_path',
+        'arrival_date',
+        'departure_date',
+        'dietary_requirements',
+        'other_dietary_needs',
+        'dinner_attendance',
+        'consent_version',
+        'consent_text_hash',
+        'data_protection_accepted_at',
+        'attendance_confirmed_at',
+        'official_email_verified_at',
+        'confirmation_email_queued_at',
+        'confirmation_email_sent_at',
+        'confirmation_email_failed_at',
+        'receipt_email_queued_at',
+        'receipt_email_sent_at',
+        'receipt_email_failed_at',
     ];
 
     protected static function booted(): void
@@ -109,6 +154,16 @@ class EventRegistration extends Model
             }
         });
 
+        static::created(function (EventRegistration $registration): void {
+            app(EventRegistrationSearchIndex::class)->synchronize($registration);
+        });
+
+        static::updated(function (EventRegistration $registration): void {
+            if ($registration->wasChanged(self::SEARCH_INDEX_ATTRIBUTES)) {
+                app(EventRegistrationSearchIndex::class)->synchronize($registration);
+            }
+        });
+
         static::deleted(function (EventRegistration $registration): void {
             Storage::disk('local')->deleteDirectory('event-registrations/'.$registration->public_id);
         });
@@ -117,6 +172,12 @@ class EventRegistration extends Model
     public function event(): BelongsTo
     {
         return $this->belongsTo(Event::class);
+    }
+
+    /** @return HasMany<EventRegistrationSearchToken, $this> */
+    public function searchTokens(): HasMany
+    {
+        return $this->hasMany(EventRegistrationSearchToken::class);
     }
 
     public function getRouteKeyName(): string

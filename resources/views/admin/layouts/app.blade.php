@@ -43,6 +43,12 @@
                     <span>Dashboard</span>
                 </a>
 
+                <p class="sidebar-nav-label">Event operations</p>
+                <a class="sidebar-link {{ request()->routeIs('admin.registrations.*') ? 'is-active' : '' }}" href="{{ route('admin.registrations.index') }}" @if(request()->routeIs('admin.registrations.*')) aria-current="page" @endif>
+                    @include('admin.partials.icon', ['name' => 'registrations'])
+                    <span>Registrations</span>
+                </a>
+
                 <p class="sidebar-nav-label">Website content</p>
                 @foreach(config('admin-content.types', []) as $navType => $navDefinition)
                     @php($isCurrentContent = request()->routeIs('admin.content.*') && request()->route('type') === $navType)

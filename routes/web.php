@@ -3,6 +3,9 @@
 use App\Http\Controllers\Admin\ContentController;
 use App\Http\Controllers\Admin\DashboardController;
 use App\Http\Controllers\Admin\HomeSectionController;
+use App\Http\Controllers\Admin\RegistrationController;
+use App\Http\Controllers\Admin\RegistrationDocumentController;
+use App\Http\Controllers\Admin\RegistrationExportController;
 use App\Http\Controllers\Admin\SettingsController;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\ResourceDownloadController;
@@ -21,8 +24,25 @@ Route::middleware('guest')->group(function (): void {
 });
 
 Route::prefix('admin')->name('admin.')->middleware('admin')->group(function (): void {
-    Route::get('/', DashboardController::class)->name('dashboard');
+    Route::get('/', DashboardController::class)->middleware('private.admin')->name('dashboard');
     Route::post('/logout', [AuthController::class, 'destroy'])->name('logout');
+
+    Route::prefix('registrations')->name('registrations.')->middleware('private.admin')->group(function (): void {
+        Route::get('/', [RegistrationController::class, 'index'])->name('index');
+        Route::get('/export/{format}', RegistrationExportController::class)
+            ->whereIn('format', ['csv', 'excel', 'pdf'])
+            ->name('export');
+        Route::get('/{registration:public_id}', [RegistrationController::class, 'show'])
+            ->whereUuid('registration')
+            ->name('show');
+        Route::get('/{registration:public_id}/pdf', [RegistrationController::class, 'pdf'])
+            ->whereUuid('registration')
+            ->name('pdf');
+        Route::get('/{registration:public_id}/documents/{document}', RegistrationDocumentController::class)
+            ->whereUuid('registration')
+            ->whereIn('document', ['photo', 'passport'])
+            ->name('document');
+    });
 
     Route::get('/homepage', [HomeSectionController::class, 'edit'])->name('home-sections.index');
     Route::put('/homepage', [HomeSectionController::class, 'update'])->name('home-sections.update');
