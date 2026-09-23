@@ -28,7 +28,8 @@ class AuthController extends Controller
             'password' => ['required', 'string'],
         ]);
 
-        $throttleKey = Str::lower($credentials['email']).'|'.$request->ip();
+        $email = Str::lower(trim((string) $credentials['email']));
+        $throttleKey = $email.'|'.$request->ip();
 
         if (RateLimiter::tooManyAttempts($throttleKey, 5)) {
             throw ValidationException::withMessages([
@@ -39,7 +40,7 @@ class AuthController extends Controller
         }
 
         if (! Auth::attempt([
-            'email' => $credentials['email'],
+            'email' => $email,
             'password' => $credentials['password'],
             'is_admin' => true,
             'is_active' => true,
