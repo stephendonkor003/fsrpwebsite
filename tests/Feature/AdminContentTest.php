@@ -17,7 +17,10 @@ class AdminContentTest extends TestCase
     public function test_guests_are_sent_to_the_administrator_login(): void
     {
         $this->get('/admin')->assertRedirect(route('login'));
-        $this->get('/admin/login')->assertOk();
+        $this->get('/admin/login')
+            ->assertOk()
+            ->assertSee($this->versionedAdminAssetUrl('admin.css'), false)
+            ->assertSee($this->versionedAdminAssetUrl('admin.js'), false);
     }
 
     public function test_an_administrator_can_sign_in_and_view_the_dashboard(): void
@@ -35,7 +38,11 @@ class AdminContentTest extends TestCase
         ])->assertRedirect(route('admin.dashboard'));
 
         $this->assertAuthenticatedAs($admin);
-        $this->get('/admin')->assertOk()->assertSee('Workspace overview');
+        $this->get('/admin')
+            ->assertOk()
+            ->assertSee('Workspace overview')
+            ->assertSee($this->versionedAdminAssetUrl('admin.css'), false)
+            ->assertSee($this->versionedAdminAssetUrl('admin.js'), false);
     }
 
     public function test_a_non_administrator_cannot_open_the_back_office(): void
@@ -169,5 +176,10 @@ class AdminContentTest extends TestCase
             $this->put('/admin/content/faqs/'.$identifier, [])->assertNotFound();
             $this->delete('/admin/content/faqs/'.$identifier)->assertNotFound();
         }
+    }
+
+    private function versionedAdminAssetUrl(string $filename): string
+    {
+        return asset("assets/{$filename}").'?v='.filemtime(public_path("assets/{$filename}"));
     }
 }

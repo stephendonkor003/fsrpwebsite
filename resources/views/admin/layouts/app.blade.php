@@ -6,7 +6,7 @@
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <meta name="theme-color" content="#172f2a">
     <title>@yield('title', 'Dashboard') · African Union Events Administration</title>
-    <link rel="stylesheet" href="{{ asset('assets/admin.css') }}">
+    <link rel="stylesheet" href="{{ asset('assets/admin.css') }}?v={{ filemtime(public_path('assets/admin.css')) }}">
     @stack('head')
 </head>
 <body class="admin-shell">
@@ -143,7 +143,7 @@
         </div>
     </div>
 
-    <script src="{{ asset('assets/admin.js') }}" defer></script>
+    <script src="{{ asset('assets/admin.js') }}?v={{ filemtime(public_path('assets/admin.js')) }}" defer></script>
     @stack('scripts')
 </body>
 </html>
