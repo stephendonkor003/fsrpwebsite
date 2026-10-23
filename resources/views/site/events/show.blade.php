@@ -44,6 +44,9 @@
             @if($isPastEvent)
                 <h3>{{ __('portal.event_concluded') }}</h3>
                 <p>{{ __('portal.event_concluded_text') }}</p>
+            @elseif($isSeedSummitEvent && config('seed_summit.registration_open') !== true)
+                <h3>{{ __('portal.registration_closed') }}</h3>
+                <p>{{ __('portal.registration_closed_text') }}</p>
             @elseif($registrationUrl)
                 <h3>{{ __('ui.actions.register_now') }}</h3>
                 <a class="button button-dark" href="{{ $registrationUrl }}" @if($registrationIsExternal) target="_blank" rel="noopener" @endif>{{ __('ui.actions.register_now') }} @include('site.partials.icon', ['name' => $registrationIsExternal ? 'external' : 'arrow'])</a>

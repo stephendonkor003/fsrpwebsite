@@ -213,8 +213,9 @@ class PublicSiteTest extends TestCase
             ->assertViewHas('faqs', fn ($faqs): bool => $faqs->isEmpty())
             ->assertViewHas('speakers', fn (array $speakers): bool => count($speakers) === count(config('seed_summit_speakers'))
                 && array_column($speakers, 'source_order') === array_column(config('seed_summit_speakers'), 'source_order'))
-            ->assertSee('/en'.SeedInvestmentSummitSeeder::REGISTRATION_PATH, false)
-            ->assertSee('Register now')
+            ->assertDontSee('/en'.SeedInvestmentSummitSeeder::REGISTRATION_PATH, false)
+            ->assertDontSee('Register now')
+            ->assertSee('Applications are closed')
             ->assertSee('Palazzo Convention Centre, Ezulwini, Eswatini')
             ->assertDontSee('22nd CAADP Partnership Platform: participant information')
             ->assertDontSee('Who convenes the 22nd CAADP Partnership Platform?');
@@ -243,6 +244,8 @@ class PublicSiteTest extends TestCase
 
     public function test_programme_page_is_scoped_to_the_current_seed_summit(): void
     {
+        $this->travelTo('2026-10-05 12:00:00');
+
         Storage::fake('local');
         Storage::disk('local')->put(CaadpEventArchiveSeeder::BRIEF_PATH, '%PDF-1.7 information note');
         Storage::disk('local')->put(CaadpEventArchiveSeeder::PROGRAMME_PATH, '%PDF-1.7 programme overview');

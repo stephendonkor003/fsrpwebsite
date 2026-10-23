@@ -33,6 +33,8 @@
                                     <a class="button button-gold" href="{{ $slide->buttonUrlForLocale($locale) ?? route('events.index', $locale) }}">{{ $slide->translate('button_text') ?: __('portal.explore') }} @include('site.partials.icon', ['name' => 'arrow'])</a>
                                     @if($featuredRegistrationUrl)
                                         <a class="button button-outline-light" href="{{ $featuredRegistrationUrl }}" @if($featuredRegistrationIsExternal) target="_blank" rel="noopener" @endif>{{ __('ui.actions.register_now') }} @include('site.partials.icon', ['name' => $featuredRegistrationIsExternal ? 'external' : 'arrow'])</a>
+                                    @elseif($isSeedSummitHomepage && config('seed_summit.registration_open') !== true)
+                                        <span class="tag tag-outline">{{ __('portal.registration_closed') }}</span>
                                     @endif
                                     @unless($isSeedSummitHomepage)
                                         <a class="hero-secondary" href="{{ route('resources.index', $locale) }}">@include('site.partials.icon', ['name' => 'download']){{ __('portal.downloads') }}</a>

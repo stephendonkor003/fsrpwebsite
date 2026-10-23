@@ -86,6 +86,8 @@ return [
     'no_resources_text' => 'Prueba otra palabra clave o elimina los filtros. Los nuevos documentos aparecen aquí al publicarse.',
     'event_resources' => 'Documentos del evento',
     'event_resources_text' => 'Lleva contigo el programa y la información esencial.',
+    'registration_closed' => 'Las solicitudes están cerradas',
+    'registration_closed_text' => 'Las solicitudes y la inscripción de delegados para la Cumbre Inaugural de Inversión en Semillas están cerradas. Ya no se aceptan nuevas solicitudes. Los solicitantes ya inscritos pueden seguir utilizando sus enlaces seguros de verificación de correo electrónico y de comprobante de inscripción.',
     'registration_pending' => 'Información sobre la participación',
     'registration_pending_text' => 'Los detalles de inscripción aparecerán aquí cuando los organizadores los confirmen. Consulta la nota del evento para conocer la información de participación disponible.',
     'event_concluded' => 'Este evento ha concluido',

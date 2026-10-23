@@ -86,6 +86,8 @@ return [
     'no_resources_text' => 'Jaribu neno jingine au ondoa vichujio. Nyaraka mpya huonekana hapa zinapochapishwa.',
     'event_resources' => 'Nyaraka za tukio',
     'event_resources_text' => 'Beba ratiba na taarifa muhimu.',
+    'registration_closed' => 'Maombi yamefungwa',
+    'registration_closed_text' => 'Maombi na usajili wa wajumbe kwa Mkutano wa Kwanza wa Uwekezaji katika Mbegu sasa yamefungwa. Maombi mapya hayapokelewi tena. Waombaji waliosajiliwa wanaweza kuendelea kutumia viungo vyao salama vya kuthibitisha barua pepe na risiti za usajili.',
     'registration_pending' => 'Taarifa za ushiriki',
     'registration_pending_text' => 'Maelezo ya usajili yataonekana hapa baada ya kuthibitishwa na waandaaji. Angalia muhtasari wa tukio kwa taarifa zilizopo kuhusu ushiriki.',
     'event_concluded' => 'Tukio hili limehitimishwa',

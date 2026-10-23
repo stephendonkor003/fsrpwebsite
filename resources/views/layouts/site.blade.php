@@ -41,7 +41,11 @@
                         @endforeach
                     </div>
                 </div>@endunless
-                <a class="nav-cta" href="{{ route('seed-summit.registration.create', $locale) }}">{{ __('ui.actions.register_now') }} @include('site.partials.icon', ['name' => 'arrow'])</a>
+                @if(config('seed_summit.registration_open') === true)
+                    <a class="nav-cta" href="{{ route('seed-summit.registration.create', $locale) }}">{{ __('ui.actions.register_now') }} @include('site.partials.icon', ['name' => 'arrow'])</a>
+                @else
+                    <a class="nav-cta" href="{{ route('events.index', $locale) }}">{{ __('portal.explore') }} @include('site.partials.icon', ['name' => 'arrow'])</a>
+                @endif
             </nav>
         </div>
     </header>

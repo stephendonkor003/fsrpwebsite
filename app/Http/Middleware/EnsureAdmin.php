@@ -20,7 +20,17 @@ class EnsureAdmin
             return redirect()->guest(route('login'));
         }
 
-        if (! $request->user()?->is_admin || ! $request->user()?->is_active) {
+        if (! $request->session()->has('account_session_version') && Auth::viaRemember()) {
+            $request->session()->put('account_session_version', (int) $request->user()?->session_version);
+        }
+
+        if (! $request->user()?->is_admin
+            || ! $request->user()?->is_active
+            || (int) $request->session()->get('account_session_version', 0) !== (int) $request->user()?->session_version) {
+            Auth::logout();
+            $request->session()->invalidate();
+            $request->session()->regenerateToken();
+
             abort(403);
         }
 

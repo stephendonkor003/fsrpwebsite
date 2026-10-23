@@ -188,8 +188,9 @@ class EventResourcesTest extends TestCase
         foreach ([[false, true], [true, false]] as [$isAdmin, $isActive]) {
             $user = User::factory()->create(['is_admin' => $isAdmin, 'is_active' => $isActive]);
             $this->actingAs($user)->get($download)->assertForbidden();
-            $this->post(route('admin.content.store', 'resources'), [])->assertForbidden();
-            $this->delete(route('admin.content.destroy', ['resources', $resource]))->assertForbidden();
+            $this->assertGuest();
+            $this->actingAs($user)->post(route('admin.content.store', 'resources'), [])->assertForbidden();
+            $this->actingAs($user)->delete(route('admin.content.destroy', ['resources', $resource]))->assertForbidden();
         }
 
         $admin = User::factory()->create(['is_admin' => true, 'is_active' => true]);

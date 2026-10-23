@@ -94,6 +94,8 @@ return [
     'no_resources_text' => 'Try another keyword or clear the filters. New documents appear here when published.',
     'event_resources' => 'Event documents',
     'event_resources_text' => 'Take the programme and key information with you.',
+    'registration_closed' => 'Applications are closed',
+    'registration_closed_text' => 'Applications and delegate registration for the Inaugural Seed Investment Summit are now closed. New applications are no longer accepted. Existing applicants can continue to use their secure email verification and registration receipt links.',
     'registration_pending' => 'Participation information',
     'registration_pending_text' => 'Registration details will appear here when confirmed by the event conveners. Check the event brief for the available participation information.',
     'event_concluded' => 'This event has concluded',

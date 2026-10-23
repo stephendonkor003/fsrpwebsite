@@ -54,6 +54,7 @@ class AuthController extends Controller
 
         RateLimiter::clear($throttleKey);
         $request->session()->regenerate();
+        $request->session()->put('account_session_version', (int) $request->user()?->session_version);
         $request->user()?->forceFill(['last_login_at' => now()])->save();
 
         return redirect()->intended(route('admin.dashboard'));

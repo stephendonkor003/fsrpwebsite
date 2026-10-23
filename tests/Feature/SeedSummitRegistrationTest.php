@@ -33,6 +33,8 @@ class SeedSummitRegistrationTest extends TestCase
     {
         parent::setUp();
 
+        config(['seed_summit.registration_open' => true]);
+
         $this->travelTo('2026-09-21 12:00:00');
         $this->event = Event::factory()->create([
             'slug' => config('seed_summit.event_slug'),

@@ -12,6 +12,16 @@
     focusable="false"
 >
     @switch($iconName)
+        @case('lock')
+            <rect x="4" y="10" width="16" height="11" rx="2" />
+            <path d="M8 10V7a4 4 0 0 1 8 0v3" />
+            @break
+
+        @case('users')
+            <circle cx="9" cy="8" r="3" />
+            <path d="M3 21v-3a6 6 0 0 1 12 0v3M16 5a3 3 0 0 1 0 6M21 21v-3a6 6 0 0 0-3-5.2" />
+            @break
+
         @case('dashboard')
             <rect x="3" y="3" width="7" height="7" rx="2" />
             <rect x="14" y="3" width="7" height="7" rx="2" />

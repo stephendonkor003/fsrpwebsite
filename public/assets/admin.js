@@ -77,6 +77,14 @@
         });
     });
 
+    document.querySelectorAll('form[data-confirm-action]').forEach((form) => {
+        form.addEventListener('submit', (event) => {
+            if (!window.confirm(form.dataset.confirmAction)) {
+                event.preventDefault();
+            }
+        });
+    });
+
     document.querySelectorAll('[data-image-upload]').forEach((upload) => {
         const input = upload.querySelector('[data-image-input]');
         const preview = upload.querySelector('[data-image-preview]');
@@ -171,7 +179,8 @@
     });
 
     document.querySelectorAll('form:not([data-confirm-delete])').forEach((form) => {
-        form.addEventListener('submit', () => {
+        form.addEventListener('submit', (event) => {
+            if (event.defaultPrevented) return;
             const submit = form.querySelector('button[type="submit"]');
             if (submit) {
                 submit.disabled = true;

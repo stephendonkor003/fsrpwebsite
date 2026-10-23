@@ -16,6 +16,47 @@
     --admin-font: "Aptos", "Segoe UI", "Noto Sans", Arial, sans-serif;
 }
 
+/* User administration */
+.users-workspace { width: 100%; min-width: 0; }
+.users-workspace .page-heading h1 { font-size: clamp(1.8rem, 2.5vw, 2.5rem); }
+.users-workspace .page-heading > div > p:not(.eyebrow) { max-width: 760px; font-size: .95rem; }
+.users-filter-form { display: grid; grid-template-columns: minmax(220px, 2fr) repeat(2, minmax(160px, 1fr)) auto; align-items: end; gap: 18px; padding: 24px; }
+.users-workspace .filter-field label, .users-workspace .form-field > label:not(.toggle-field) { font-size: .85rem; }
+.users-workspace .filter-field input, .users-workspace .filter-field select, .users-workspace .form-field input:not([type="checkbox"]) { min-height: 48px; font-size: .95rem; }
+.users-workspace .button { min-height: 44px; font-size: .82rem; }
+.users-workspace .button--small { min-height: 38px; padding: 8px 12px; font-size: .76rem; white-space: nowrap; }
+.users-workspace .button--danger { color: var(--admin-red); background: var(--admin-red-soft); border-color: #e4b7b2; }
+.users-workspace .button--danger:hover { background: #f3dcd8; }
+.users-workspace .panel-heading p, .users-workspace .field-help, .users-workspace .field-error { font-size: .8rem; }
+.users-workspace .badge { font-size: .72rem; }
+.users-workspace .registration-metric-card p { font-size: .8rem; }
+.users-workspace .registration-metric-card strong { font-size: 2rem; }
+.users-table th { font-size: .72rem; }
+.users-table td, .users-table .table-title-link { font-size: .88rem; }
+.users-table .table-primary-cell { min-width: 240px; }
+.users-table .table-primary-cell small { max-width: 310px; font-size: .77rem; overflow-wrap: anywhere; }
+.users-row-actions { display: flex; flex-wrap: wrap; gap: 8px; }
+.users-row-actions form { margin: 0; }
+.users-status-note { display: block; margin-top: 5px; font-size: .73rem; }
+.users-panel-body { padding: 24px; }
+.users-panel-body > h2 { margin: 0 0 12px; font-size: 1rem; }
+.users-workspace .toggle-field { align-items: flex-start; min-height: 88px; padding: 16px; }
+.users-workspace .toggle-field strong { font-size: .88rem; }
+.users-workspace .toggle-field small { margin-top: 5px; font-size: .77rem; }
+.users-workspace .toggle-control { margin-top: 3px; }
+.users-workspace .toggle-control input:disabled + span { opacity: .55; cursor: not-allowed; }
+.users-access-note { color: var(--admin-muted); font-size: .85rem; line-height: 1.7; }
+@media (max-width: 1100px) {
+    .users-filter-form { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+@media (max-width: 600px) {
+    .users-filter-form { grid-template-columns: 1fr; padding: 18px; }
+    .users-panel-body { padding: 18px; }
+    .users-workspace .editor-actions { position: static; align-items: stretch; flex-direction: column; gap: 12px; }
+    .users-workspace .editor-action-buttons > * { flex: 1; }
+    .users-table .table-primary-cell small { max-width: 220px; }
+}
+
 *, *::before, *::after { box-sizing: border-box; }
 html { min-width: 320px; }
 body { margin: 0; color: var(--admin-ink); background: var(--admin-bg); font-family: var(--admin-font); font-size: 15px; line-height: 1.55; -webkit-font-smoothing: antialiased; }

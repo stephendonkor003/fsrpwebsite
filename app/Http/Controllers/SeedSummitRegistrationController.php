@@ -23,9 +23,11 @@ class SeedSummitRegistrationController extends Controller
 {
     public function create(Request $request): Response
     {
-        return response()->view('site.seed-summit.register', array_merge($this->sharedViewData(), [
+        $registrationOpen = config('seed_summit.registration_open') === true;
+
+        return response()->view($registrationOpen ? 'site.seed-summit.register' : 'site.seed-summit.closed', array_merge($this->sharedViewData(), [
             'event' => $this->event(),
-            'formInput' => $this->formInput($request),
+            'formInput' => $registrationOpen ? $this->formInput($request) : [],
         ]))->withHeaders($this->privateHeaders());
     }
 

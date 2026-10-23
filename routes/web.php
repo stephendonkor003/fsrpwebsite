@@ -7,6 +7,7 @@ use App\Http\Controllers\Admin\RegistrationController;
 use App\Http\Controllers\Admin\RegistrationDocumentController;
 use App\Http\Controllers\Admin\RegistrationExportController;
 use App\Http\Controllers\Admin\SettingsController;
+use App\Http\Controllers\Admin\UserController;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\ResourceDownloadController;
 use App\Http\Controllers\SearchEngineController;
@@ -23,9 +24,18 @@ Route::middleware('guest')->group(function (): void {
     Route::post('/admin/login', [AuthController::class, 'store'])->middleware('throttle:10,1')->name('login.store');
 });
 
-Route::prefix('admin')->name('admin.')->middleware('admin')->group(function (): void {
+Route::prefix('admin')->name('admin.')->middleware(['admin', 'auth.session'])->group(function (): void {
     Route::get('/', DashboardController::class)->middleware('private.admin')->name('dashboard');
     Route::post('/logout', [AuthController::class, 'destroy'])->name('logout');
+
+    Route::prefix('users')->name('users.')->middleware('private.admin')->group(function (): void {
+        Route::get('/', [UserController::class, 'index'])->name('index');
+        Route::get('/create', [UserController::class, 'create'])->name('create');
+        Route::post('/', [UserController::class, 'store'])->name('store');
+        Route::get('/{user}/edit', [UserController::class, 'edit'])->whereNumber('user')->name('edit');
+        Route::put('/{user}', [UserController::class, 'update'])->whereNumber('user')->name('update');
+        Route::patch('/{user}/status', [UserController::class, 'updateStatus'])->whereNumber('user')->name('status');
+    });
 
     Route::prefix('registrations')->name('registrations.')->middleware('private.admin')->group(function (): void {
         Route::get('/', [RegistrationController::class, 'index'])->name('index');

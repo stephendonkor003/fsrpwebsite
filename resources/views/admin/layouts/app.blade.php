@@ -59,6 +59,10 @@
                 @endforeach
 
                 <p class="sidebar-nav-label">Configuration</p>
+                <a class="sidebar-link {{ request()->routeIs('admin.users.*') ? 'is-active' : '' }}" href="{{ route('admin.users.index') }}" @if(request()->routeIs('admin.users.*')) aria-current="page" @endif>
+                    @include('admin.partials.icon', ['name' => 'users'])
+                    <span>Users &amp; access</span>
+                </a>
                 <a class="sidebar-link {{ request()->routeIs('admin.home-sections.*') ? 'is-active' : '' }}" href="{{ route('admin.home-sections.index') }}" @if(request()->routeIs('admin.home-sections.*')) aria-current="page" @endif>
                     @include('admin.partials.icon', ['name' => 'home'])
                     <span>Homepage layout</span>

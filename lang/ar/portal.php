@@ -86,6 +86,8 @@ return [
     'no_resources_text' => 'Try another keyword or clear the filters. New documents appear here when published.',
     'event_resources' => 'Event documents',
     'event_resources_text' => 'Take the programme and key information with you.',
+    'registration_closed' => 'أُغلق باب التقديم',
+    'registration_closed_text' => 'أُغلق الآن باب تقديم الطلبات وتسجيل المندوبين للقمة الافتتاحية للاستثمار في البذور. لم يعد من الممكن قبول طلبات جديدة. يمكن للمتقدمين المسجلين الاستمرار في استخدام الروابط الآمنة للتحقق من البريد الإلكتروني وإيصال التسجيل.',
     'registration_pending' => 'Participation information',
     'registration_pending_text' => 'Registration details will appear here when confirmed by the event conveners. Check the event brief for the available participation information.',
     'event_concluded' => 'اختُتمت هذه الفعالية',

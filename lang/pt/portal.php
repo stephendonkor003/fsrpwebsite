@@ -86,6 +86,8 @@ return [
     'no_resources_text' => 'Experimente outra palavra-chave ou limpe os filtros. Os novos documentos aparecem aqui quando são publicados.',
     'event_resources' => 'Documentos do evento',
     'event_resources_text' => 'Leve consigo o programa e as informações essenciais.',
+    'registration_closed' => 'As candidaturas estão encerradas',
+    'registration_closed_text' => 'As candidaturas e as inscrições de delegados para a Cimeira Inaugural de Investimento em Sementes estão encerradas. Não são aceites novas candidaturas. Os candidatos já inscritos podem continuar a utilizar os seus links seguros de verificação de email e de comprovativo de inscrição.',
     'registration_pending' => 'Informações sobre a participação',
     'registration_pending_text' => 'Os detalhes da inscrição serão apresentados aqui após confirmação dos organizadores. Consulte a nota do evento para obter as informações de participação disponíveis.',
     'event_concluded' => 'Este evento terminou',

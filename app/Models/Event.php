@@ -44,6 +44,10 @@ class Event extends Model
 
     public function registrationUrlForLocale(string $locale): ?string
     {
+        if ($this->slug === config('seed_summit.event_slug') && config('seed_summit.registration_open') !== true) {
+            return null;
+        }
+
         $url = trim((string) $this->registration_url);
         $locales = array_keys(config('locales.supported'));
 

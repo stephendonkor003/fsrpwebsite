@@ -94,6 +94,8 @@ return [
     'no_resources_text' => 'Essayez un autre mot-clé ou effacez les filtres. Les nouveaux documents apparaissent ici dès leur publication.',
     'event_resources' => 'Documents de l’événement',
     'event_resources_text' => 'Emportez le programme et les informations essentielles.',
+    'registration_closed' => 'Les candidatures sont closes',
+    'registration_closed_text' => 'Les candidatures et les inscriptions des délégués au Sommet inaugural sur l’investissement semencier sont désormais closes. Aucune nouvelle candidature n’est acceptée. Les personnes déjà inscrites peuvent continuer à utiliser leurs liens sécurisés de vérification de courriel et de récépissé d’inscription.',
     'registration_pending' => 'Informations sur la participation',
     'registration_pending_text' => 'Les modalités d’inscription seront affichées ici après confirmation des organisateurs. Consultez la note de l’événement pour les informations disponibles sur la participation.',
     'event_concluded' => 'Cet événement est terminé',

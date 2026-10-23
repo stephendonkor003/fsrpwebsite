@@ -5,6 +5,7 @@ $retentionDaysAfterEvent = max(1, (int) env('SEED_SUMMIT_RETENTION_DAYS_AFTER_EV
 
 return [
     'event_slug' => 'inaugural-seed-investment-summit',
+    'registration_open' => false,
     'theme' => 'Resilient Seed Systems for a Food Secure Africa',
     'consent_version' => '2026-09-21-v2',
     'receipt_link_minutes' => 30,

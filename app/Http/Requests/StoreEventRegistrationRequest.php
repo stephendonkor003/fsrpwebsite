@@ -18,6 +18,8 @@ class StoreEventRegistrationRequest extends FormRequest
      */
     public function authorize(): bool
     {
+        abort_unless(config('seed_summit.registration_open') === true, 403, __('portal.registration_closed_text'));
+
         return true;
     }
 

@@ -288,6 +288,8 @@ class SeedInvestmentSummitSeederTest extends TestCase
 
     public function test_public_pages_render_localized_internal_ctas_and_external_ctas_safely(): void
     {
+        config(['seed_summit.registration_open' => true]);
+
         $this->travelTo('2026-09-21 12:00:00');
         $this->prepareCaadpDocuments();
         $this->seed(DatabaseSeeder::class);
